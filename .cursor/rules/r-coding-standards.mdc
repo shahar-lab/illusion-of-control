@@ -1,0 +1,11 @@
+---
+description: Follow the shared Claude R coding guidance when editing R scripts
+globs: **/*.R
+alwaysApply: false
+---
+
+# R Coding Standards
+
+When working on R files in this repository, read and follow `.claude/CLAUDE.md`.
+
+That file is the source of truth for the team's R coding style so Claude Code and Cursor can share the same guidance. In particular, follow its preferences around readable R code, minimal headers, restrained comments, tidyverse usage, and avoiding `set.seed()`, `tryCatch()`, or `stop()` unless there is a clear task-specific reason.
