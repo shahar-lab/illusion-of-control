@@ -38,6 +38,7 @@ df_reoffered <- df |>
 
 #### SUMMARISE PSTAY ####
 subject_means <- df_reoffered |>
+  filter(!is.na(reward_oneback)) |>
   group_by(subject, scarcity, reward_oneback) |>
   summarise(
     p_stay = mean(stay_ch),
@@ -63,10 +64,11 @@ scarcity_means <- subject_means |>
 subject_reward_effects <- subject_means |>
   group_by(subject, scarcity, scarcity_label) |>
   summarise(
-    reward_effect = p_stay[reward_oneback == "rewarded"] -
-      p_stay[reward_oneback == "unrewarded"],
+    reward_effect = mean(p_stay[reward_oneback == "rewarded"], na.rm = TRUE) -
+      mean(p_stay[reward_oneback == "unrewarded"], na.rm = TRUE),
     .groups = "drop"
-  )
+  ) |>
+  filter(!is.na(reward_effect))
 
 scarcity_reward_effects <- subject_reward_effects |>
   group_by(scarcity, scarcity_label) |>
@@ -85,6 +87,11 @@ for (i in seq_along(scarcity_values)) {
   scarcity_subject_means <- subject_means |>
     filter(scarcity_label == scarcity_level)
 
+  subject_line_data <- scarcity_subject_means |>
+    group_by(subject) |>
+    filter(n() > 1) |>
+    ungroup()
+
   scarcity_group_means <- scarcity_means |>
     filter(scarcity_label == scarcity_level)
 
@@ -96,7 +103,7 @@ for (i in seq_along(scarcity_values)) {
     scarcity_subject_means,
     aes(x = reward_oneback, y = p_stay, group = subject)
   ) +
-    geom_line(colour = "grey70", alpha = 0.6) +
+    geom_line(data = subject_line_data, colour = "grey70", alpha = 0.6) +
     geom_point(
       colour = "#4477AA",
       alpha = 0.65,

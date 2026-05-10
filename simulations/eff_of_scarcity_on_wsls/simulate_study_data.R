@@ -3,7 +3,7 @@ rm(list = ls())
 #### SETUP ####
 library(dplyr)
 
-source("models/alpha_beta/alpha_beta.r")
+source("models/alpha_beta_kappa/alpha_beta_kappa.r")
 
 data_path <- "simulations/eff_of_scarcity_on_wsls/data"
 
@@ -13,12 +13,13 @@ Nsubjects_per_scarcity <- 10
 
 agent_parameters <- c(
   alpha = 0.3,
-  beta  = 4
+  beta  = 4,
+  kappa = 0.05
 )
 
 cfg <- list(
-  Nblocks   = 4,
-  Ntrials   = 50,
+  Nblocks   = 6,
+  Ntrials   = 25,
   Narms     = 3,
   Nraffle   = 2,
   Ndims     = 2
