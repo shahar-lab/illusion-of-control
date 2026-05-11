@@ -20,7 +20,6 @@ sim.block = function(subject,parameters,cfg){
 
   for (block in 1:Nblocks){
 
-    Q_cards= rep(0.5, Narms)
     prev_choice = NA
     for (trial in 1:Ntrials){
       #computer offer

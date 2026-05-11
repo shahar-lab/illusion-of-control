@@ -1,0 +1,5 @@
+model_parameters=list()
+model_parameters$names                             = c('alpha', 'beta', 'explore', 'decay_explore')
+model_parameters$transformation                    = c('logit', 'none', 'none', 'logit')
+model_parameters$artificial_population_location    = c(0.5, 3, 0.5, 0.9)
+model_parameters$artificial_population_scale       = c(0.25, 1, 0.5, 0.1)
