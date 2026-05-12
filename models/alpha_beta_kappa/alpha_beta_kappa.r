@@ -18,6 +18,8 @@ sim.block = function(subject,parameters,cfg){
   expvalues          = cfg$expvalues
   df                 =data.frame()
 
+  Q_cards = rep(0.5, Narms)
+
   for (block in 1:Nblocks){
 
     prev_choice = NA

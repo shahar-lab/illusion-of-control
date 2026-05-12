@@ -17,9 +17,10 @@ sim.block = function(subject, parameters, cfg){
   expvalues = cfg$expvalues
   df        = data.frame()
 
+  Q_cards = rep(0.5, Narms)
+
   for (block in 1:Nblocks){
 
-    Q_cards = rep(0.5, Narms)
     E_cards = rep(0, Narms)
 
     for (trial in 1:Ntrials){
