@@ -5,7 +5,7 @@ library(dplyr)
 
 source("models/alpha_beta_kappa_decay/alpha_beta_kappa_decay.r")
 
-data_path <- "simulations/eff_of_scarcity_on_wsls/data"
+data_path <- "simulations/eff_of_scarcity_on_wsls/alpha_beta_kappa_decay/data"
 
 #### SIMULATE DATA ####
 scarcity_values <- seq(0, 1, by = 0.1)

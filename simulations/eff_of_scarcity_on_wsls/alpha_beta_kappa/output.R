@@ -6,11 +6,11 @@ library(ggplot2)
 library(patchwork)
 library(readr)
 
-data_path <- "simulations/eff_of_scarcity_on_wsls/data"
-figs_path <- "simulations/eff_of_scarcity_on_wsls/figs"
+data_path <- "simulations/eff_of_scarcity_on_wsls/alpha_beta_kappa/data"
+figs_path <- "simulations/eff_of_scarcity_on_wsls/alpha_beta_kappa/figs"
 
 #### LOAD DATA ####
-df <- read_csv(file.path(data_path, "df_uniform.csv"), show_col_types = FALSE)
+df <- read_csv(file.path(data_path, "df.csv"), show_col_types = FALSE)
 
 subject_counts <- df |>
   group_by(scarcity) |>
@@ -136,13 +136,13 @@ for (i in seq_along(scarcity_values)) {
 }
 
 figure_1 <- wrap_plots(plots, ncol = 4) +
-  plot_annotation(title = "Figure 1 — uniform parameters")
+  plot_annotation(title = "Figure 1")
 
 print(figure_1)
 
 #### SAVE FIGURE ####
 dir.create(figs_path, recursive = TRUE, showWarnings = FALSE)
-ggsave(file.path(figs_path, "figure_1_uniform.pdf"), figure_1, width = 12, height = 9)
+ggsave(file.path(figs_path, "figure_1.pdf"), figure_1, width = 12, height = 9)
 
 #### FIGURE 2 ####
 figure_2 <- ggplot(
@@ -175,11 +175,11 @@ figure_2 <- ggplot(
   theme_minimal(base_size = 13) +
   theme(panel.grid.minor = element_blank()) +
   labs(
-    title = "Figure 2 — uniform parameters",
+    title = "Figure 2",
     x     = "scarcity",
     y     = "reward effect on p_stay"
   )
 
 print(figure_2)
 
-ggsave(file.path(figs_path, "figure_2_uniform.pdf"), figure_2, width = 8, height = 5)
+ggsave(file.path(figs_path, "figure_2.pdf"), figure_2, width = 8, height = 5)

@@ -6,8 +6,8 @@ library(ggplot2)
 library(patchwork)
 library(readr)
 
-data_path <- "simulations/eff_of_scarcity_on_wsls/data"
-figs_path <- "simulations/eff_of_scarcity_on_wsls/figs"
+data_path <- "simulations/eff_of_scarcity_on_wsls/alpha_beta_kappa_decay/data"
+figs_path <- "simulations/eff_of_scarcity_on_wsls/alpha_beta_kappa_decay/figs"
 
 #### LOAD DATA ####
 df <- read_csv(file.path(data_path, "df.csv"), show_col_types = FALSE)

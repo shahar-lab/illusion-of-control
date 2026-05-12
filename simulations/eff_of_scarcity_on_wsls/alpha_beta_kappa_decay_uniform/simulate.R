@@ -3,19 +3,13 @@ rm(list = ls())
 #### SETUP ####
 library(dplyr)
 
-source("models/alpha_beta_kappa/alpha_beta_kappa.r")
+source("models/alpha_beta_kappa_decay/alpha_beta_kappa_decay.r")
 
-data_path <- "simulations/eff_of_scarcity_on_wsls/data"
+data_path <- "simulations/eff_of_scarcity_on_wsls/alpha_beta_kappa_decay_uniform/data"
 
 #### SIMULATE DATA ####
-scarcity_values <- seq(0, 1, by = 0.1)
-Nsubjects_per_scarcity <- 10
-
-agent_parameters <- c(
-  alpha = 0.3,
-  beta  = 4,
-  kappa = 0.05
-)
+scarcity_values        <- seq(0, 1, by = 0.1)
+Nsubjects_per_scarcity <- 50
 
 cfg <- list(
   Nblocks   = 6,
@@ -31,6 +25,13 @@ for (scarcity in scarcity_values) {
   cfg$expvalues <- matrix(scarcity, nrow = cfg$Narms, ncol = cfg$Ntrials)
 
   for (subject in 1:Nsubjects_per_scarcity) {
+    agent_parameters <- c(
+      alpha         = qlogis(runif(1, 0.1, 0.9)),
+      beta          = runif(1, 0.5, 8),
+      explore       = runif(1, -0.5, 0.5),
+      decay_explore = qlogis(0.9)
+    )
+
     dfnew <- sim.block(
       subject    = subject,
       parameters = agent_parameters,
