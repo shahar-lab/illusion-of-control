@@ -10,18 +10,18 @@ data_path <- "simulations/one_subj_two_arms/data"
 #### SIMULATE DATA ####
 agent_parameters <- c(
   alpha         = qlogis(0.3),
-  beta          = 4,
+  beta          = 0,
   explore       = 0.2,
   decay_explore = qlogis(0.9)
 )
 
 cfg <- list(
-  Nblocks   = 6,
-  Ntrials   = 25,
+  Nblocks   = 1,
+  Ntrials   = 50,
   Narms     = 2,
   Nraffle   = 2,
   Ndims     = 2,
-  expvalues = matrix(0.5, nrow = 2, ncol = 25)
+  expvalues = matrix(0.8, nrow = 2, ncol = 50)
 )
 
 df <- sim.block(
