@@ -11,19 +11,21 @@ sim.block = function(subject,parameters,cfg){
 
   #set initial var
   Narms              = cfg$Narms
-  Ntrials=cfg$Ntrials
+  Ntrials            = cfg$Ntrials
   Nraffle            = cfg$Nraffle
   Nblocks            = cfg$Nblocks
   Ndims              = cfg$Ndims
   expvalues          = cfg$expvalues
-  df                 =data.frame()
+  df                 = data.frame()
 
   Q_cards = rep(0.5, Narms)
 
   for (block in 1:Nblocks){
 
     prev_choice = NA
+
     for (trial in 1:Ntrials){
+
       #computer offer
       options=sample(1:Narms,2)
       
@@ -37,11 +39,13 @@ sim.block = function(subject,parameters,cfg){
       }
 
       p = exp(Qnet) / sum(exp(Qnet)) #get prob for each action
+
       #players choice
       ch_card = sample(options, 1, prob = p) #chose a card according to probs
       unch_card=options[which(options != ch_card)]
       ch_key = which(options == ch_card) #get key of chosen card 1 =left
       unch_key = which(options!=ch_card)
+      
       #outcome 
       reward = sample(0:1, 1, prob = c(1 - expvalues[ch_card, trial], expvalues[ch_card, trial])) #reward according to card
       
