@@ -72,8 +72,6 @@ summarise_draws <- function(draws_df) {
       median  = median(beta),
       lo90    = quantile(beta, 0.05),
       hi90    = quantile(beta, 0.95),
-      lo80    = quantile(beta, 0.10),
-      hi80    = quantile(beta, 0.90),
       .groups = "drop"
     )
 }
@@ -86,9 +84,8 @@ make_panel <- function(draws_df, lag_label, show_x_label = FALSE, show_y_label =
     # Reference lines
     geom_hline(yintercept  = 0,             linetype = "dashed", colour = "grey40", linewidth = 0.6) +
     geom_vline(xintercept  = grand_mean_rt, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
-    # 90% CI (thin) then 80% CI (thick) then median point
+    # 90% CI + median point
     geom_linerange(aes(ymin = lo90, ymax = hi90), linewidth = 0.5, colour = "grey50") +
-    geom_linerange(aes(ymin = lo80, ymax = hi80), linewidth = 1.2, colour = "grey30") +
     geom_point(aes(y = median), size = 2, colour = "grey20") +
     annotate(
       "text", x = grand_mean_rt, y = ylim[2],
