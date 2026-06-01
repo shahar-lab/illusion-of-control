@@ -62,7 +62,6 @@ sym_ylim <- function(draws_df) {
 theme_posterior <- theme_minimal(base_size = 13) +
   theme(
     panel.grid           = element_blank(),
-    axis.title.y         = element_blank(),
     axis.text.y          = element_blank(),
     axis.ticks.y         = element_blank(),
     axis.line.y          = element_blank(),
@@ -91,7 +90,7 @@ make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
     coord_cartesian(ylim = ylim, clip = "off") +
     labs(
       x = if (show_x_label) "Mean response time (ms)" else NULL,
-      y = NULL,
+      y = "WSLS β (reward sensitivity)",
       title = lag_label
     ) +
     theme_posterior +
