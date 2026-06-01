@@ -65,31 +65,54 @@ pA1 <- make_gamma_panel(gamma_1, "1-back", ann_1)
 pA2 <- make_gamma_panel(gamma_2, "2-back", ann_2)
 pA3 <- make_gamma_panel(gamma_3, "3-back", ann_3, show_x = TRUE)
 
-#### PANEL B: per-subject beta vs. motivation score (1-back) ####
+#### PANEL B: per-subject beta vs. motivation score ####
 make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
-  motiv_ref <- mean(draws_df$motivation)
+  subj_summary <- draws_df |>
+    group_by(participant, motivation) |>
+    summarise(beta_med = median(beta), .groups = "drop")
+
+  stopifnot(nrow(subj_summary) == length(unique(draws_df$participant)))
+
+  pearson_r <- cor(subj_summary$motivation, subj_summary$beta_med, method = "pearson")
+  x_breaks  <- seq(min(subj_summary$motivation), max(subj_summary$motivation), length.out = 4)
+  y_lim     <- range(quantile(draws_df$beta, c(0.01, 0.99)))
+  y_breaks  <- seq(y_lim[1], y_lim[2], length.out = 4)
 
   ggplot(draws_df, aes(x = motivation, y = beta, group = participant)) +
-    geom_hline(yintercept = 0,         linetype = "dashed", colour = "grey40", linewidth = 0.6) +
-    geom_vline(xintercept = motiv_ref, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
+    geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40", linewidth = 0.6) +
+    geom_smooth(
+      data        = subj_summary,
+      aes(x = motivation, y = beta_med, group = NULL),
+      method      = "lm",
+      se          = FALSE,
+      colour      = "#EE6677",
+      linewidth   = 0.8,
+      inherit.aes = FALSE
+    ) +
     stat_pointinterval(
       .width     = c(0.80, 0.90),
       point_size = 2,
       linewidth  = 0.8,
-      colour     = "grey30"
+      colour     = "#4477AA"
     ) +
     annotate(
-      "text", x = motiv_ref, y = max(quantile(draws_df$beta, 0.975)),
-      label  = sprintf("Grand mean\n%.2f", motiv_ref),
-      hjust  = -0.08, vjust = 1, size = 3, colour = "grey50"
+      "text", x = Inf, y = Inf,
+      label = sprintf("[Pearson r = %.2f]", pearson_r),
+      hjust = 1.05, vjust = 1.4, size = 3.5, colour = "grey30"
     ) +
+    scale_x_continuous(breaks = round(x_breaks, 1)) +
+    scale_y_continuous(breaks = round(y_breaks, 2)) +
+    coord_fixed(xlim = range(subj_summary$motivation), ylim = y_lim, clip = "off") +
     labs(
       x     = if (show_x) "Overall motivation score (IMI)" else NULL,
       y     = expression(beta ~ "(WSLS effect)"),
       title = lag_label
     ) +
-    theme_classic(base_size = 12) +
-    theme(axis.title.x = element_text(size = 11))
+    theme_minimal(base_size = 12) +
+    theme(
+      panel.grid.minor = element_blank(),
+      axis.title.x     = element_text(size = 11)
+    )
 }
 
 pB1 <- make_scatter_panel(draws_1, "1-back")
