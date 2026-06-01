@@ -78,7 +78,7 @@ summarise_draws <- function(draws_df) {
     )
 }
 
-make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
+make_panel <- function(draws_df, lag_label, show_x_label = FALSE, show_y_label = FALSE) {
   ylim  <- sym_ylim(draws_df)
   sumdf <- summarise_draws(draws_df)
 
@@ -98,7 +98,7 @@ make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
     coord_cartesian(ylim = ylim, clip = "off") +
     labs(
       x = if (show_x_label) "Mean response time (ms)" else NULL,
-      y = "β: effect of prior reward on stay probability (log-odds)",
+      y = if (show_y_label) "β: effect of prior reward on stay probability (log-odds)" else NULL,
       title = lag_label
     ) +
     theme_posterior +
@@ -108,9 +108,9 @@ make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
 }
 
 #### BUILD PANELS ####
-p1 <- make_panel(draws_1, "1-back",  show_x_label = FALSE)
-p2 <- make_panel(draws_2, "2-back",  show_x_label = FALSE)
-p3 <- make_panel(draws_3, "3-back",  show_x_label = TRUE)
+p1 <- make_panel(draws_1, "1-back",  show_x_label = FALSE, show_y_label = FALSE)
+p2 <- make_panel(draws_2, "2-back",  show_x_label = FALSE, show_y_label = TRUE)
+p3 <- make_panel(draws_3, "3-back",  show_x_label = TRUE,  show_y_label = FALSE)
 
 combined <- p1 / p2 / p3 +
   plot_annotation(tag_levels = "A") &
