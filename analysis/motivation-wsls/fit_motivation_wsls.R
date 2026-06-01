@@ -43,7 +43,7 @@ df <- bind_rows(df_list)
 #### COMPUTE MOTIVATION SCORE PER SUBJECT ####
 # IMI (Intrinsic Motivation Inventory): mean of all non-attention items, reverse-scored
 motiv_scores <- df |>
-  filter(trial_name == "motivation_imi", trial_type == "survey-likert") |>
+  filter(phase == "motivation_imi", trial_type == "survey-likert") |>
   filter(!as.logical(attention)) |>
   mutate(
     resp_val   = as.integer(str_extract(response, "(?<=:)\\d+")),
