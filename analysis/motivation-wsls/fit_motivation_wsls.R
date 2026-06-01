@@ -44,7 +44,7 @@ df <- bind_rows(df_list)
 # IMI (Intrinsic Motivation Inventory): mean of all non-attention items, reverse-scored
 motiv_scores <- df |>
   filter(phase == "motivation_imi", trial_type == "survey-likert") |>
-  filter(!as.logical(attention)) |>
+  filter(category == "Effort/Importance") |>
   mutate(
     resp_val   = as.integer(str_extract(response, "(?<=:)\\d+")),
     is_flipped = as.logical(flipped),
