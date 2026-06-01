@@ -52,7 +52,7 @@ make_gamma_panel <- function(draws_gamma, lag_label, ann_text, show_x = FALSE) {
     geom_vline(xintercept = median(draws_gamma$gamma), linetype = "dotted", color = "gray50", linewidth = 0.5) +
     scale_x_continuous(limits = gamma_lims) +
     labs(
-      x        = if (show_x) expression(gamma ~ "(motivation effect on WSLS" ~ beta ~ ")") else NULL,
+      x        = if (show_x) expression(gamma ~ "(effort effect on WSLS" ~ beta ~ ")") else NULL,
       y        = NULL,
       subtitle = ann_text
     ) +
@@ -65,23 +65,23 @@ pA2 <- make_gamma_panel(gamma_2, "2-back", ann_2)
 pA3 <- make_gamma_panel(gamma_3, "3-back", ann_3, show_x = TRUE)
 
 #### PANEL B: per-subject beta vs. motivation score ####
-make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
+make_scatter_panel <- function(draws_df, show_x = FALSE) {
   subj_summary <- draws_df |>
-    group_by(participant, motivation) |>
+    group_by(participant, motivation_z) |>
     summarise(beta_med = median(beta), .groups = "drop")
 
   stopifnot(nrow(subj_summary) == length(unique(draws_df$participant)))
 
-  pearson_r <- cor(subj_summary$motivation, subj_summary$beta_med, method = "pearson")
-  x_breaks  <- seq(min(subj_summary$motivation), max(subj_summary$motivation), length.out = 4)
+  pearson_r <- cor(subj_summary$motivation_z, subj_summary$beta_med, method = "pearson")
+  x_breaks  <- seq(min(subj_summary$motivation_z), max(subj_summary$motivation_z), length.out = 4)
   y_lim     <- range(quantile(draws_df$beta, c(0.01, 0.99)))
   y_breaks  <- seq(y_lim[1], y_lim[2], length.out = 4)
 
-  ggplot(draws_df, aes(x = motivation, y = beta, group = participant)) +
+  ggplot(draws_df, aes(x = motivation_z, y = beta, group = participant)) +
     geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40", linewidth = 0.6) +
     geom_smooth(
       data        = subj_summary,
-      aes(x = motivation, y = beta_med, group = NULL),
+      aes(x = motivation_z, y = beta_med, group = NULL),
       method      = "lm",
       se          = FALSE,
       colour      = "#EE6677",
@@ -99,11 +99,11 @@ make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
       label = sprintf("[Pearson r = %.2f]", pearson_r),
       hjust = 1.05, vjust = 1.4, size = 3.5, colour = "grey30"
     ) +
-    scale_x_continuous(breaks = round(x_breaks, 1)) +
+    scale_x_continuous(breaks = round(x_breaks, 2)) +
     scale_y_continuous(breaks = round(y_breaks, 2)) +
-    coord_fixed(xlim = range(subj_summary$motivation), ylim = y_lim, clip = "off") +
+    coord_fixed(xlim = range(subj_summary$motivation_z), ylim = y_lim, clip = "off") +
     labs(
-      x = if (show_x) "Effort score (IMI)" else NULL,
+      x = if (show_x) "Effort score, z-scored (IMI)" else NULL,
       y = expression(beta ~ "(WSLS effect)")
     ) +
     theme_minimal(base_size = 12) +
@@ -113,9 +113,9 @@ make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
     )
 }
 
-pB1 <- make_scatter_panel(draws_1, "1-back")
-pB2 <- make_scatter_panel(draws_2, "2-back")
-pB3 <- make_scatter_panel(draws_3, "3-back", show_x = TRUE)
+pB1 <- make_scatter_panel(draws_1)
+pB2 <- make_scatter_panel(draws_2)
+pB3 <- make_scatter_panel(draws_3, show_x = TRUE)
 
 #### COMBINE AND SAVE ####
 combined <- (pA1 | pB1) / (pA2 | pB2) / (pA3 | pB3) +

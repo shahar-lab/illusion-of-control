@@ -41,7 +41,7 @@ for (f in all_files) {
 df <- bind_rows(df_list)
 
 #### COMPUTE MOTIVATION SCORE PER SUBJECT ####
-# IMI (Intrinsic Motivation Inventory): mean of all non-attention items, reverse-scored
+# IMI Effort/Importance subscale: mean of Effort/Importance items only, reverse-scored where flipped
 motiv_scores <- df |>
   filter(phase == "motivation_imi", trial_type == "survey-likert") |>
   filter(category == "Effort/Importance") |>
