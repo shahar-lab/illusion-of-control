@@ -6,7 +6,6 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(stringr)
-library(ggdist)
 library(patchwork)
 
 DATA_DIR  <- "../../data/ioc-task/pilot20"
@@ -66,20 +65,31 @@ theme_posterior <- theme_minimal(base_size = 13) +
     axis.line.y          = element_line(colour = "grey30")
   )
 
-make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
-  ylim <- sym_ylim(draws_df)
+summarise_draws <- function(draws_df) {
+  draws_df |>
+    group_by(participant, mean_rt) |>
+    summarise(
+      median  = median(beta),
+      lo90    = quantile(beta, 0.05),
+      hi90    = quantile(beta, 0.95),
+      lo80    = quantile(beta, 0.10),
+      hi80    = quantile(beta, 0.90),
+      .groups = "drop"
+    )
+}
 
-  p <- ggplot(draws_df, aes(x = mean_rt, y = beta, group = participant)) +
+make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
+  ylim  <- sym_ylim(draws_df)
+  sumdf <- summarise_draws(draws_df)
+
+  p <- ggplot(sumdf, aes(x = mean_rt)) +
     # Reference lines
     geom_hline(yintercept  = 0,             linetype = "dashed", colour = "grey40", linewidth = 0.6) +
     geom_vline(xintercept  = grand_mean_rt, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
-    # Subject-level posterior: slab (rotated halfeye per subject, sharing x = mean_rt)
-    stat_pointinterval(
-      .width     = c(0.80, 0.90),
-      point_size = 2,
-      linewidth  = 0.8,
-      colour     = "grey30"
-    ) +
+    # 90% CI (thin) then 80% CI (thick) then median point
+    geom_linerange(aes(ymin = lo90, ymax = hi90), linewidth = 0.5, colour = "grey50") +
+    geom_linerange(aes(ymin = lo80, ymax = hi80), linewidth = 1.2, colour = "grey30") +
+    geom_point(aes(y = median), size = 2, colour = "grey20") +
     annotate(
       "text", x = grand_mean_rt, y = ylim[2],
       label  = sprintf("Mean RT\n%.0f ms", grand_mean_rt),
