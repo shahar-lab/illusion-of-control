@@ -90,7 +90,7 @@ make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
       inherit.aes = FALSE
     ) +
     stat_pointinterval(
-      .width     = c(0.80, 0.90),
+      .width     = 0.90,
       point_size = 2,
       linewidth  = 0.8,
       colour     = "#4477AA"
