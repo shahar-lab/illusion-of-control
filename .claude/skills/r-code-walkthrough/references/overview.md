@@ -17,7 +17,7 @@ Give the user a concise mental map of the entire selected excerpt so they know w
    - **Transformations** by name (filter, pivot, group, summarise, fit model, plot)
    - **Variable and column names** from the code
 6. **Input → output flow** — Describe what goes in and what comes out across the excerpt.
-7. **End with exactly:** **"Any questions about this overview, or can we start a code walkthrough?"
+7. **End with exactly:** **"Any questions about this overview, or can we start a code walkthrough?"**
 8. **Stop the message** — Do not add statements, code blocks, or walkthrough content after this question.
 
 
