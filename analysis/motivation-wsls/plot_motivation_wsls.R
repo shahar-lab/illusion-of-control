@@ -54,7 +54,6 @@ make_gamma_panel <- function(draws_gamma, lag_label, ann_text, show_x = FALSE) {
     labs(
       x        = if (show_x) expression(gamma ~ "(motivation effect on WSLS" ~ beta ~ ")") else NULL,
       y        = NULL,
-      title    = lag_label,
       subtitle = ann_text
     ) +
     theme_post +
@@ -104,9 +103,8 @@ make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
     scale_y_continuous(breaks = round(y_breaks, 2)) +
     coord_fixed(xlim = range(subj_summary$motivation), ylim = y_lim, clip = "off") +
     labs(
-      x     = if (show_x) "Overall motivation score (IMI)" else NULL,
-      y     = expression(beta ~ "(WSLS effect)"),
-      title = expression("Per-subject WSLS " * beta * " by effort score")
+      x = if (show_x) "Effort score (IMI)" else NULL,
+      y = expression(beta ~ "(WSLS effect)")
     ) +
     theme_minimal(base_size = 12) +
     theme(
