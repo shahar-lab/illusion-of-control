@@ -106,7 +106,7 @@ make_scatter_panel <- function(draws_df, lag_label, show_x = FALSE) {
     labs(
       x     = if (show_x) "Overall motivation score (IMI)" else NULL,
       y     = expression(beta ~ "(WSLS effect)"),
-      title = lag_label
+      title = expression("Per-subject WSLS " * beta * " by effort score")
     ) +
     theme_minimal(base_size = 12) +
     theme(
