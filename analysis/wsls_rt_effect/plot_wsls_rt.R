@@ -6,7 +6,6 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(stringr)
-library(ggdist)
 library(patchwork)
 
 DATA_DIR  <- "../../data/ioc-task/pilot20"
@@ -62,27 +61,32 @@ sym_ylim <- function(draws_df) {
 theme_posterior <- theme_minimal(base_size = 13) +
   theme(
     panel.grid           = element_blank(),
-    axis.title.y         = element_blank(),
-    axis.text.y          = element_blank(),
-    axis.ticks.y         = element_blank(),
-    axis.line.y          = element_blank(),
-    axis.line.x          = element_line(colour = "grey30")
+    axis.line.x          = element_line(colour = "grey30"),
+    axis.line.y          = element_line(colour = "grey30")
   )
 
-make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
-  ylim <- sym_ylim(draws_df)
+summarise_draws <- function(draws_df) {
+  draws_df |>
+    group_by(participant, mean_rt) |>
+    summarise(
+      median  = median(beta),
+      lo90    = quantile(beta, 0.05),
+      hi90    = quantile(beta, 0.95),
+      .groups = "drop"
+    )
+}
 
-  p <- ggplot(draws_df, aes(x = mean_rt, y = beta, group = participant)) +
+make_panel <- function(draws_df, lag_label, show_x_label = FALSE, show_y_label = FALSE) {
+  ylim  <- sym_ylim(draws_df)
+  sumdf <- summarise_draws(draws_df)
+
+  p <- ggplot(sumdf, aes(x = mean_rt)) +
     # Reference lines
     geom_hline(yintercept  = 0,             linetype = "dashed", colour = "grey40", linewidth = 0.6) +
     geom_vline(xintercept  = grand_mean_rt, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
-    # Subject-level posterior: slab (rotated halfeye per subject, sharing x = mean_rt)
-    stat_pointinterval(
-      .width     = c(0.80, 0.90),
-      point_size = 2,
-      linewidth  = 0.8,
-      colour     = "grey30"
-    ) +
+    # 90% CI + median point
+    geom_linerange(aes(ymin = lo90, ymax = hi90), linewidth = 0.5, colour = "grey50") +
+    geom_point(aes(y = median), size = 2, colour = "grey20") +
     annotate(
       "text", x = grand_mean_rt, y = ylim[2],
       label  = sprintf("Mean RT\n%.0f ms", grand_mean_rt),
@@ -91,7 +95,7 @@ make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
     coord_cartesian(ylim = ylim, clip = "off") +
     labs(
       x = if (show_x_label) "Mean response time (ms)" else NULL,
-      y = NULL,
+      y = if (show_y_label) "β: effect of prior reward on stay probability (log-odds)" else NULL,
       title = lag_label
     ) +
     theme_posterior +
@@ -101,9 +105,9 @@ make_panel <- function(draws_df, lag_label, show_x_label = FALSE) {
 }
 
 #### BUILD PANELS ####
-p1 <- make_panel(draws_1, "1-back",  show_x_label = FALSE)
-p2 <- make_panel(draws_2, "2-back",  show_x_label = FALSE)
-p3 <- make_panel(draws_3, "3-back",  show_x_label = TRUE)
+p1 <- make_panel(draws_1, "1-back",  show_x_label = FALSE, show_y_label = FALSE)
+p2 <- make_panel(draws_2, "2-back",  show_x_label = FALSE, show_y_label = TRUE)
+p3 <- make_panel(draws_3, "3-back",  show_x_label = TRUE,  show_y_label = FALSE)
 
 combined <- p1 / p2 / p3 +
   plot_annotation(tag_levels = "A") &
