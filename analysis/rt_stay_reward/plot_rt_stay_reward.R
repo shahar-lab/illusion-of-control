@@ -160,8 +160,6 @@ post_time <- exp(post_time_log)
 time_summary <- newdata_time |>
   mutate(
     med  = apply(post_time, 2, median),
-    lo80 = apply(post_time, 2, quantile, 0.10),
-    hi80 = apply(post_time, 2, quantile, 0.90),
     lo90 = apply(post_time, 2, quantile, 0.05),
     hi90 = apply(post_time, 2, quantile, 0.95)
   )
@@ -187,8 +185,6 @@ ci_df <- post_long |>
   group_by(condition) |>
   summarise(
     med  = median(rt_est),
-    lo80 = quantile(rt_est, 0.10),
-    hi80 = quantile(rt_est, 0.90),
     lo90 = quantile(rt_est, 0.05),
     hi90 = quantile(rt_est, 0.95),
     .groups = "drop"
@@ -203,13 +199,8 @@ p_post <- ggplot(dens_df, aes(x = x, y = y, fill = condition, colour = condition
   geom_area(alpha = 0.50, position = "identity") +
   geom_segment(
     data = ci_df,
-    aes(x = lo80, xend = hi80, y = -0.04, yend = -0.04, colour = condition),
-    linewidth = 2.5, inherit.aes = FALSE
-  ) +
-  geom_segment(
-    data = ci_df,
     aes(x = lo90, xend = hi90, y = -0.04, yend = -0.04, colour = condition),
-    linewidth = 1.0, inherit.aes = FALSE
+    linewidth = 1.5, inherit.aes = FALSE
   ) +
   geom_point(
     data = ci_df,
@@ -238,8 +229,7 @@ p_post <- ggplot(dens_df, aes(x = x, y = y, fill = condition, colour = condition
 # ---- Panel B: RT across trial numbers ----
 p_time <- ggplot(time_summary,
                  aes(x = trial_number, fill = reward_label, colour = reward_label)) +
-  geom_ribbon(aes(ymin = lo90, ymax = hi90), alpha = 0.13, colour = NA) +
-  geom_ribbon(aes(ymin = lo80, ymax = hi80), alpha = 0.25, colour = NA) +
+  geom_ribbon(aes(ymin = lo90, ymax = hi90), alpha = 0.20, colour = NA) +
   geom_line(aes(y = med), linewidth = 1) +
   scale_fill_manual(values = pal) +
   scale_colour_manual(values = pal) +
