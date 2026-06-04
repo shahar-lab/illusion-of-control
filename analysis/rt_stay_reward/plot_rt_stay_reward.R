@@ -142,27 +142,15 @@ cat(sprintf("  Difference (Rewarded - Unrewarded): %.1f ms [90%% CI: %.1f, %.1f]
     quantile(post_cond_df$diff, 0.95)))
 cat(sprintf("  P(Rewarded < Unrewarded): %.3f\n", mean(post_cond_df$diff < 0)))
 
-#### EXTRACT POSTERIORS ACROSS TRIAL NUMBERS ####
-mean_tn   <- mean(stay_df$trial_number)
-trial_seq <- 1:25
+#### PER-SUBJECT MEANS ####
+subj_means <- stay_df |>
+  group_by(participant, reward_label) |>
+  summarise(mean_rt = mean(rt), .groups = "drop") |>
+  pivot_wider(names_from = reward_label, values_from = mean_rt) |>
+  filter(!is.na(Unrewarded), !is.na(Rewarded))
 
-newdata_time <- expand.grid(
-  trial_number   = trial_seq,
-  reward_label   = factor(c("Unrewarded", "Rewarded"), levels = c("Unrewarded", "Rewarded"))
-) |>
-  mutate(trial_number_c = trial_number - mean_tn)
-
-post_time_log <- posterior_linpred(fit, newdata = newdata_time, re.form = NA)
-# Exponentiate to get predicted RT in ms
-post_time <- exp(post_time_log)
-# post_time: [draws x (25*2)]
-
-time_summary <- newdata_time |>
-  mutate(
-    med  = apply(post_time, 2, median),
-    lo90 = apply(post_time, 2, quantile, 0.05),
-    hi90 = apply(post_time, 2, quantile, 0.95)
-  )
+stopifnot(nrow(subj_means) == n_distinct(subj_means$participant))
+cat("Subjects with data in both conditions:", nrow(subj_means), "\n")
 
 #### PLOTTING ####
 pal <- c("Unrewarded" = "#E69F00", "Rewarded" = "#56B4E9")
@@ -226,35 +214,42 @@ p_post <- ggplot(dens_df, aes(x = x, y = y, fill = condition, colour = condition
   labs(x = "Mean RT — stay trials (ms)", fill = NULL, colour = NULL) +
   coord_cartesian(xlim = xlims, ylim = c(-0.15, 1.15), clip = "off")
 
-# ---- Panel B: RT across trial numbers ----
-p_time <- ggplot(time_summary,
-                 aes(x = trial_number, fill = reward_label, colour = reward_label)) +
-  geom_ribbon(aes(ymin = lo90, ymax = hi90), alpha = 0.20, colour = NA) +
-  geom_line(aes(y = med), linewidth = 1) +
-  scale_fill_manual(values = pal) +
-  scale_colour_manual(values = pal) +
-  scale_x_continuous(breaks = seq(1, 25, by = 4)) +
-  scale_y_continuous(labels = function(x) paste0(round(x), " ms")) +
-  theme_minimal(base_size = 13) +
-  theme(
-    panel.grid           = element_blank(),
-    axis.line.x          = element_line(colour = "grey30"),
-    axis.line.y          = element_line(colour = "grey30"),
-    legend.position      = c(1, 0.95),
-    legend.justification = c("right", "top"),
-    legend.background    = element_blank(),
-    legend.key           = element_blank()
+# ---- Panel B: Per-subject scatter (Unrewarded vs Rewarded) ----
+shared_limits <- range(c(subj_means$Unrewarded, subj_means$Rewarded), na.rm = TRUE)
+shared_limits <- shared_limits + c(-0.05, 0.05) * diff(shared_limits)  # 5% padding
+axis_breaks   <- seq(shared_limits[1], shared_limits[2], length.out = 4)
+pearson_r     <- cor(subj_means$Unrewarded, subj_means$Rewarded, method = "pearson")
+
+p_scatter <- ggplot(subj_means, aes(x = Unrewarded, y = Rewarded)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_smooth(method = "lm", se = FALSE, colour = "#EE6677", linewidth = 0.8) +
+  geom_point(colour = "#4477AA", alpha = 0.80, size = 2.5) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label  = sprintf("[Pearson r = %.2f]", pearson_r),
+    hjust  = 1.05, vjust = 1.4,
+    size   = 3.5, colour = "grey30"
   ) +
+  scale_x_continuous(
+    breaks = axis_breaks,
+    labels = function(x) paste0(round(x), " ms")
+  ) +
+  scale_y_continuous(
+    breaks = axis_breaks,
+    labels = function(x) paste0(round(x), " ms")
+  ) +
+  coord_equal(xlim = shared_limits, ylim = shared_limits, clip = "off") +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank()) +
   labs(
-    x      = "Trial number (within block)",
-    y      = "Expected RT (ms)",
-    fill   = NULL,
-    colour = NULL
+    x = "Mean RT — unrewarded stay (ms)",
+    y = "Mean RT — rewarded stay (ms)"
   )
 
 #### COMBINE AND SAVE ####
-combined <- p_post / p_time +
-  plot_layout(heights = c(1, 1.8)) +
+combined <- p_post / p_scatter +
+  plot_layout(heights = c(1, 2)) +
   plot_annotation(tag_levels = "A") &
   theme(plot.tag = element_text(face = "bold"))
 
