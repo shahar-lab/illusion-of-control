@@ -222,7 +222,6 @@ pearson_r     <- cor(subj_means$Unrewarded, subj_means$Rewarded, method = "pears
 
 p_scatter <- ggplot(subj_means, aes(x = Unrewarded, y = Rewarded)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60") +
-  geom_smooth(method = "lm", se = FALSE, colour = "#EE6677", linewidth = 0.8) +
   geom_point(colour = "#4477AA", alpha = 0.80, size = 2.5) +
   annotate(
     "text",
