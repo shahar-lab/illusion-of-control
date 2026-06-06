@@ -5,6 +5,7 @@ library(tidyr)
 library(readr)
 library(stringr)
 library(ggplot2)
+library(patchwork)
 library(rstanarm)
 
 DATA_DIR <- "../../data/ioc-task/pilot20"
@@ -109,32 +110,86 @@ subj_long <- stay_df |>
   group_by(participant, reward_label) |>
   summarise(mean_rt = mean(rt), .groups = "drop")
 
-#### PLOT ####
+#### PLOTTING ####
 pal <- c("Unrewarded" = "#E69F00", "Rewarded" = "#56B4E9")
 
-# x-axis nudge: individual dots slightly inward, group estimate at centre
-x_pos <- c("Unrewarded" = 1, "Rewarded" = 2)
+# ---- Panel A: Posterior distributions ----
+post_long <- data.frame(
+  Unrewarded = exp(post_log[, 1]),
+  Rewarded   = exp(post_log[, 2])
+) |>
+  pivot_longer(everything(), names_to = "condition", values_to = "rt_est") |>
+  mutate(condition = factor(condition, levels = c("Unrewarded", "Rewarded")))
 
-p <- ggplot() +
-  # connecting lines per subject
+dens_list <- lapply(levels(post_long$condition), function(cond) {
+  vals <- post_long$rt_est[post_long$condition == cond]
+  d    <- density(vals, n = 512)
+  data.frame(x = d$x, y = d$y / max(d$y), condition = cond, stringsAsFactors = FALSE)
+})
+dens_df <- bind_rows(dens_list) |>
+  mutate(condition = factor(condition, levels = c("Unrewarded", "Rewarded")))
+
+ci_df <- post_long |>
+  group_by(condition) |>
+  summarise(
+    med  = median(rt_est),
+    lo90 = quantile(rt_est, 0.05),
+    hi90 = quantile(rt_est, 0.95),
+    .groups = "drop"
+  )
+
+all_rt <- post_long$rt_est
+r      <- range(all_rt); span <- diff(r)
+xlims  <- c(r[1] - 0.20 * span, r[2] + 0.20 * span)
+
+p_post <- ggplot(dens_df, aes(x = x, y = y, fill = condition, colour = condition)) +
+  geom_area(alpha = 0.50, position = "identity") +
+  geom_segment(
+    data = ci_df,
+    aes(x = lo90, xend = hi90, y = -0.04, yend = -0.04, colour = condition),
+    linewidth = 1.5, inherit.aes = FALSE
+  ) +
+  geom_point(
+    data = ci_df,
+    aes(x = med, y = -0.04, colour = condition),
+    size = 3, inherit.aes = FALSE
+  ) +
+  scale_fill_manual(values = pal) +
+  scale_colour_manual(values = pal) +
+  scale_x_continuous(labels = function(x) paste0(round(x), " ms")) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid           = element_blank(),
+    axis.title.y         = element_blank(),
+    axis.text.y          = element_blank(),
+    axis.ticks.y         = element_blank(),
+    axis.line.y          = element_blank(),
+    axis.line.x          = element_line(colour = "grey30"),
+    legend.position      = c(1, 0.95),
+    legend.justification = c("right", "top"),
+    legend.background    = element_blank(),
+    legend.key           = element_blank()
+  ) +
+  labs(x = "Mean RT — stay trials (ms)", fill = NULL, colour = NULL) +
+  coord_cartesian(xlim = xlims, ylim = c(-0.15, 1.15), clip = "off")
+
+# ---- Panel B: Within-subject connected dots ----
+p_within <- ggplot() +
   geom_line(
     data = subj_long,
     aes(x = as.numeric(reward_label), y = mean_rt, group = participant),
     colour = "grey70", linewidth = 0.4, alpha = 0.7
   ) +
-  # per-subject dots
   geom_point(
     data = subj_long,
     aes(x = as.numeric(reward_label), y = mean_rt, colour = reward_label),
     size = 2, alpha = 0.75
   ) +
-  # group posterior CI
   geom_linerange(
     data = group_ci,
     aes(x = as.numeric(reward_label), ymin = lo90, ymax = hi90),
     linewidth = 3, colour = "grey20", alpha = 0.25
   ) +
-  # group posterior median
   geom_point(
     data = group_ci,
     aes(x = as.numeric(reward_label), y = med),
@@ -156,11 +211,17 @@ p <- ggplot() +
   ) +
   labs(y = "Mean RT — stay trials (ms)")
 
+#### COMBINE AND SAVE ####
+combined <- p_post / p_within +
+  plot_layout(heights = c(1, 2)) +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold"))
+
 ggsave(
   file.path(FIGURES, "rt_reward_within_subject.png"),
-  p,
-  width  = 4,
-  height = 5,
+  combined,
+  width  = 5,
+  height = 8,
   dpi    = 150,
   bg     = "white"
 )
