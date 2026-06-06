@@ -65,8 +65,7 @@ df <- bind_rows(df_list) |>
 stay_df <- df |>
   filter(stay == 1) |>
   mutate(
-    log_rt         = log(rt),
-    trial_number_c = trial_number - mean(trial_number)
+    log_rt = log(rt)
   )
 
 cat("Stay trials:", nrow(stay_df), "| N subjects:", n_distinct(stay_df$participant), "\n")
@@ -75,7 +74,7 @@ cat("Stay trials:", nrow(stay_df), "| N subjects:", n_distinct(stay_df$participa
 cat("Fitting model...\n")
 
 fit <- stan_lmer(
-  formula          = log_rt ~ reward_label + trial_number_c + (1 + reward_label | participant),
+  formula          = log_rt ~ reward_label + (1 + reward_label | participant),
   data             = stay_df,
   prior            = normal(0, 0.5),
   prior_intercept  = normal(7, 1),
@@ -90,8 +89,7 @@ fit <- stan_lmer(
 
 #### EXTRACT GROUP POSTERIOR ####
 newdata_cond <- data.frame(
-  reward_label   = factor(c("Unrewarded", "Rewarded"), levels = c("Unrewarded", "Rewarded")),
-  trial_number_c = 0
+  reward_label = factor(c("Unrewarded", "Rewarded"), levels = c("Unrewarded", "Rewarded"))
 )
 
 post_log <- posterior_linpred(fit, newdata = newdata_cond, re.form = NA)
