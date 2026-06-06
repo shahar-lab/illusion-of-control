@@ -8,15 +8,15 @@ library(ggplot2)
 library(patchwork)
 library(rstanarm)
 
-DATA_DIR <- "../../data/ioc-all-pilot10"
+DATA_DIR <- "../../data/ioc-one-piot10"
 FIGURES  <- "figures"
 dir.create(FIGURES, showWarnings = FALSE)
 
 INCLUDED_IDS <- c(
-  "5d1a8d1531978f00019c42bd", "605b838b80f022835fc293fb", "67d0094243dae460e5682b51",
-  "6928a6394052fbe76783ed32", "6985a1a2a9b075341a3e65b0", "69947fa1a4c3da138296e3c4",
-  "69a1086e0fba8ea789c2ee15", "69a14f0c9cb4d84e02cab2ea", "69ef69fa85d57cec3354845f",
-  "6a02cd6171c4d3dcce16c504"
+  "57f2da5c6c19420001438d19", "60415858380a051122571d55", "698dff1a795a3ac8f1680ed5",
+  "699f4039ddf914372870c431", "69bbe13bdb78ed30b67655e6", "69f1386d8f8e9af4ec5759a7",
+  "69ff8f6c58779f2e9509c9ea", "6a0e22d4600e541a0b7459cc", "6a1549dbf86c7917392dbd46",
+  "6a20bb2045e8d03e12f71732"
 )
 
 #### LOAD & FILTER ####
@@ -217,7 +217,7 @@ combined <- p_post / p_within +
   theme(plot.tag = element_text(face = "bold"))
 
 ggsave(
-  file.path(FIGURES, "rt_reward_pilot10.png"),
+  file.path(FIGURES, "rt_reward_one_pilot10.png"),
   combined,
   width  = 5,
   height = 8,
