@@ -64,24 +64,21 @@ cat(sprintf("reward_oneback (0 = loss, 1 = win): %s\n",
 df <- df |> rename(reward_oneback = reward_lag1)
 
 #### MIXED EFFECTS MODEL ####
-df <- df |> mutate(log_rt = log(rt))
-
-fit <- lmer(log_rt ~ reward_oneback + (1 + reward_oneback | subj),
+fit <- lmer(rt ~ reward_oneback + (1 + reward_oneback | subj),
             data = df, REML = TRUE)
 
 cat("\n=== Model summary ===\n")
 print(summary(fit))
 
-#### FIXED-EFFECT PREDICTIONS (back-transformed to ms) ####
+#### FIXED-EFFECT PREDICTIONS ####
 fe <- fixef(fit)
 pred_fe <- tibble(
   reward_oneback = c(0L, 1L),
-  log_rt_pred    = c(fe[["(Intercept)"]],
-                     fe[["(Intercept)"]] + fe[["reward_oneback"]]),
-  rt_pred        = exp(log_rt_pred)
+  rt_pred        = c(fe[["(Intercept)"]],
+                     fe[["(Intercept)"]] + fe[["reward_oneback"]])
 )
 
-fe_delta_ms <- pred_fe$rt_pred[2] - pred_fe$rt_pred[1]
+fe_delta_ms <- fe[["reward_oneback"]]
 
 #### SUBJECT-LEVEL MEANS ####
 subj_means <- df |>
@@ -96,8 +93,8 @@ subj_slopes <- tibble(
   slope_i     = fe[["reward_oneback"]] + re[["reward_oneback"]]
 ) |>
   mutate(
-    rt_loss = exp(intercept_i),
-    rt_win  = exp(intercept_i + slope_i),
+    rt_loss = intercept_i,
+    rt_win  = intercept_i + slope_i,
     delta   = rt_win - rt_loss
   )
 
