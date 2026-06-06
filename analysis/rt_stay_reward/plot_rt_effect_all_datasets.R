@@ -5,6 +5,7 @@ library(tidyr)
 library(readr)
 library(stringr)
 library(ggplot2)
+library(patchwork)
 library(rstanarm)
 
 FIGURES <- "figures"
@@ -135,75 +136,63 @@ diff_df <- bind_rows(diff_list) |>
   mutate(dataset = factor(dataset, levels = sapply(datasets, `[[`, "label")))
 
 #### PLOT ####
-# Okabe-Ito palette (3 groups)
+# Okabe-Ito palette
 pal <- c(
   "pilot20"         = "#E69F00",
   "ioc-all-pilot10" = "#56B4E9",
   "ioc-one-pilot10" = "#009E73"
 )
 
-# Compute densities (normalised to max = 1 per group)
-dens_list <- lapply(levels(diff_df$dataset), function(ds) {
-  vals <- diff_df$diff_ms[diff_df$dataset == ds]
-  d    <- density(vals, n = 512)
-  data.frame(x = d$x, y = d$y / max(d$y), dataset = ds, stringsAsFactors = FALSE)
-})
-dens_df <- bind_rows(dens_list) |>
-  mutate(dataset = factor(dataset, levels = levels(diff_df$dataset)))
-
-# 90% CI + median per group
-ci_df <- diff_df |>
-  group_by(dataset) |>
-  summarise(
-    med  = median(diff_ms),
-    lo90 = quantile(diff_ms, 0.05),
-    hi90 = quantile(diff_ms, 0.95),
-    .groups = "drop"
-  )
-
-# Symmetric x-axis around zero
+# Shared symmetric x-axis across all panels
 max_abs <- max(abs(range(diff_df$diff_ms)))
 xlims   <- c(-max_abs, max_abs)
 
-p <- ggplot(dens_df, aes(x = x, y = y, fill = dataset, colour = dataset)) +
-  geom_area(alpha = 0.50, position = "identity") +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey40", linewidth = 0.7) +
-  # 90% CI segment
-  geom_segment(
-    data = ci_df,
-    aes(x = lo90, xend = hi90, y = -0.04, yend = -0.04, colour = dataset),
-    linewidth = 1.5, inherit.aes = FALSE
-  ) +
-  # Median point
-  geom_point(
-    data = ci_df,
-    aes(x = med, y = -0.04, colour = dataset),
-    size = 3, inherit.aes = FALSE
-  ) +
-  scale_fill_manual(values = pal,
-                    guide  = guide_legend(override.aes = list(alpha = 0.7))) +
-  scale_colour_manual(values = pal, guide = "none") +
-  scale_x_continuous(labels = function(x) paste0(x, " ms")) +
-  theme_minimal(base_size = 13) +
-  theme(
-    panel.grid           = element_blank(),
-    axis.title.y         = element_blank(),
-    axis.text.y          = element_blank(),
-    axis.ticks.y         = element_blank(),
-    axis.line.y          = element_blank(),
-    axis.line.x          = element_line(colour = "grey30"),
-    legend.position      = c(1, 0.95),
-    legend.justification = c("right", "top"),
-    legend.background    = element_blank(),
-    legend.key           = element_blank()
-  ) +
-  labs(x = "RT difference: rewarded − unrewarded stay (ms)", fill = NULL) +
-  coord_cartesian(xlim = xlims, ylim = c(-0.15, 1.15), clip = "off")
+# Helper: build one panel for a single dataset
+make_panel <- function(ds_label) {
+  vals    <- diff_df$diff_ms[diff_df$dataset == ds_label]
+  d       <- density(vals, n = 512)
+  dens    <- data.frame(x = d$x, y = d$y / max(d$y))
+  med_val <- median(vals)
+  lo90    <- quantile(vals, 0.05)
+  hi90    <- quantile(vals, 0.95)
+  pd      <- max(mean(vals > 0), mean(vals < 0)) * 100
+  col     <- pal[[ds_label]]
+
+  ggplot(dens, aes(x = x, y = y)) +
+    geom_area(fill = col, alpha = 0.50, colour = col, linewidth = 0.3) +
+    geom_vline(xintercept = 0,       linetype = "dashed", colour = "grey40", linewidth = 0.7) +
+    geom_vline(xintercept = med_val, linetype = "dashed", colour = "grey65", linewidth = 0.4) +
+    annotate("text", x = med_val, y = Inf,
+             label  = sprintf("[median = %.1f ms, pd = %.1f%%]", med_val, pd),
+             hjust  = -0.05, vjust = 1.4, size = 3.0, colour = "grey40") +
+    geom_segment(aes(x = lo90, xend = hi90, y = -0.04, yend = -0.04),
+                 colour = col, linewidth = 1.5) +
+    geom_point(aes(x = med_val, y = -0.04),
+               colour = col, size = 3) +
+    scale_x_continuous(labels = function(x) paste0(x, " ms")) +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid   = element_blank(),
+      axis.title.y = element_blank(),
+      axis.text.y  = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.line.y  = element_blank(),
+      axis.line.x  = element_line(colour = "grey30")
+    ) +
+    labs(x = ds_label) +
+    coord_cartesian(xlim = xlims, ylim = c(-0.15, 1.15), clip = "off")
+}
+
+panels <- lapply(levels(diff_df$dataset), make_panel)
+
+combined <- wrap_plots(panels, nrow = 1) +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold"))
 
 ggsave(
   file.path(FIGURES, "rt_effect_all_datasets.png"),
-  p,
-  width  = 8,
+  combined,
+  width  = 12,
   height = 3.5,
   dpi    = 150,
   bg     = "white"
