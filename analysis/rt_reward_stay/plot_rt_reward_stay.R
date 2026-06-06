@@ -9,7 +9,7 @@ library(lme4)
 library(ggplot2)
 library(patchwork)
 
-DATA_DIR <- "../../data/ioc-all-pilot10"
+DATA_DIR <- "../../data/ioc-one-piot10"
 FIGURES  <- "figures"
 dir.create(FIGURES, showWarnings = FALSE)
 
