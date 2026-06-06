@@ -186,8 +186,19 @@ make_panel <- function(ds_label) {
 panels <- lapply(levels(diff_df$dataset), make_panel)
 
 combined <- wrap_plots(panels, nrow = 1) +
-  plot_annotation(tag_levels = "A") &
-  theme(plot.tag = element_text(face = "bold"))
+  plot_annotation(
+    tag_levels = "A",
+    caption    = paste(
+      "Model: log(RT) ~ reward_label + (1 + reward_label | participant), fit on stay trials (choice_keyᵢ = choice_keyᵢ₋₁).",
+      "Plotted: posterior of the group-level RT difference (ms) between previous-rewarded and previous-unrewarded stay trials.",
+      "Effect = exp(μ_rewarded) − exp(μ_unrewarded), where μ is the population-level linear predictor on the log scale.",
+      sep = "\n"
+    )
+  ) &
+  theme(
+    plot.tag     = element_text(face = "bold"),
+    plot.caption = element_text(size = 8, colour = "grey40", hjust = 0, margin = margin(t = 8))
+  )
 
 ggsave(
   file.path(FIGURES, "rt_effect_all_datasets.png"),
