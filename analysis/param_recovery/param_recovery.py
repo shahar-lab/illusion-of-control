@@ -98,14 +98,28 @@ def load_subjects(data_dir):
         choices_oh = np.zeros((T, N_ARMS), dtype=float)
         choices_oh[np.arange(T), choices] = 1.0
 
+        # ── belief-survey category ──
+        bs = df[(df["trial_name"] == "belief_survey") &
+                (df["trial_type"] == "survey-html-form")]
+        if len(bs):
+            row = bs.iloc[0]
+            understood_correct = (float(row["instruction_blue"])  == 50.0 and
+                                  float(row["instruction_green"]) == 50.0 and
+                                  float(row["instruction_red"])   == 50.0)
+            felt_same = (str(row["felt_different"]).strip().lower() == "no")
+        else:
+            understood_correct, felt_same = False, False
+        understood_eq_felt = understood_correct and felt_same
+
         records.append({
-            "pid":         pid,
-            "T":           T,
-            "choices":     choices,
-            "rewards":     rewards,
-            "choices_oh":  choices_oh,   # (T, 3)
-            "persev_exp":  persev_exp,   # (T,)
-            "prev_arm_oh": prev_arm_oh,  # (T, 3)
+            "pid":               pid,
+            "T":                 T,
+            "choices":           choices,
+            "rewards":           rewards,
+            "choices_oh":        choices_oh,
+            "persev_exp":        persev_exp,
+            "prev_arm_oh":       prev_arm_oh,
+            "understood_eq_felt": understood_eq_felt,
         })
 
     print(f"Loaded {len(records)} subjects, {records[0]['T']} trials each")
@@ -267,12 +281,21 @@ def density_panel(ax, draws, title, xlabel, fill_color):
     ax.tick_params(axis="x", labelsize=7)
 
 
-def dotplot_panel(ax, medians, lo, hi, title, xlabel):
+DOT_EQ   = "#2a6496"   # teal-blue  — understood = felt
+DOT_NEQ  = "#c0392b"   # red        — understood ≠ felt
+CI_EQ    = "#7fb3d3"
+CI_NEQ   = "#e8a89c"
+
+
+def dotplot_panel(ax, medians, lo, hi, understood_eq_felt, title, xlabel, add_legend=False):
     N   = len(medians)
     ord = np.argsort(medians)
     for i, j in enumerate(ord):
-        ax.plot([lo[j], hi[j]], [i, i], color="#aaaaaa", lw=0.9, zorder=1)
-        ax.plot(medians[j], i, "o", color=GREY_LINE, ms=3.5, zorder=2)
+        eq   = understood_eq_felt[j]
+        col  = DOT_EQ  if eq else DOT_NEQ
+        ccol = CI_EQ   if eq else CI_NEQ
+        ax.plot([lo[j], hi[j]], [i, i], color=ccol, lw=0.9, zorder=1)
+        ax.plot(medians[j], i, "o", color=col, ms=3.5, zorder=2)
     ax.axvline(0, color="#666666", ls="--", lw=0.8, alpha=0.7)
     ax.set_yticks(np.arange(N))
     ax.set_yticklabels([f"P{ord[i]+1:02d}" for i in range(N)], fontsize=5.5)
@@ -280,6 +303,13 @@ def dotplot_panel(ax, medians, lo, hi, title, xlabel):
     ax.set_xlabel(xlabel, fontsize=8)
     ax.spines[["top", "right"]].set_visible(False)
     ax.tick_params(axis="x", labelsize=7)
+    if add_legend:
+        import matplotlib.patches as mpatches
+        ax.legend(
+            handles=[mpatches.Patch(color=DOT_EQ,  label="understood = felt  (n=13)"),
+                     mpatches.Patch(color=DOT_NEQ, label="understood ≠ felt  (n=5)")],
+            fontsize=6, loc="lower right", framealpha=0.7,
+        )
 
 
 # ── main ──────────────────────────────────────────────────────────────────────
@@ -290,16 +320,31 @@ def main():
     subjects = load_subjects(DATA_DIR)
     tensors  = make_tensors(subjects)
 
-    # ── fit ───────────────────────────────────────────────────────────────────
-    print("\n=== Fitting Model 1 (alpha, beta, kappa, delta) ===")
-    with build_model_1(tensors) as m1:
-        idata_m1 = pm.sample(draws=1000, tune=1000, chains=4,
-                             target_accept=0.9, progressbar=True, random_seed=1)
+    # subject-level categories (same order as subjects list)
+    understood_eq_felt = np.array([s["understood_eq_felt"] for s in subjects])
 
-    print("\n=== Fitting Model 2 (kappa, delta) ===")
-    with build_model_2(tensors) as m2:
-        idata_m2 = pm.sample(draws=1000, tune=1000, chains=4,
-                             target_accept=0.9, progressbar=True, random_seed=2)
+    # ── fit (or reload if draws already exist) ────────────────────────────────
+    DRAWS_M1 = "draws_m1.nc"
+    DRAWS_M2 = "draws_m2.nc"
+
+    if os.path.exists(DRAWS_M1) and os.path.exists(DRAWS_M2):
+        print("Loading saved draws …")
+        import arviz as az
+        idata_m1 = az.from_netcdf(DRAWS_M1)
+        idata_m2 = az.from_netcdf(DRAWS_M2)
+    else:
+        print("\n=== Fitting Model 1 (alpha, beta, kappa, delta) ===")
+        with build_model_1(tensors) as m1:
+            idata_m1 = pm.sample(draws=1000, tune=1000, chains=4,
+                                 target_accept=0.9, progressbar=True, random_seed=1)
+        import arviz as az
+        az.to_netcdf(idata_m1, DRAWS_M1)
+
+        print("\n=== Fitting Model 2 (kappa, delta) ===")
+        with build_model_2(tensors) as m2:
+            idata_m2 = pm.sample(draws=1000, tune=1000, chains=4,
+                                 target_accept=0.9, progressbar=True, random_seed=2)
+        az.to_netcdf(idata_m2, DRAWS_M2)
 
     # ── extract ───────────────────────────────────────────────────────────────
     def flat(idata, var):
@@ -356,7 +401,7 @@ def main():
     for c, (draws, title, xl, fc) in enumerate(group_panels):
         density_panel(fig.add_subplot(gs[0, c]), draws, title, xl, fc)
 
-    # Row 1 — subject-level dot plots
+    # Row 1 — subject-level dot plots (color = understood_eq_felt)
     subj_panels = [
         (s_delta_m1, "δ   (M1)",  "δ"),
         (s_delta_m2, "δ   (M2)",  "δ"),
@@ -367,7 +412,9 @@ def main():
     ]
     for c, (mat, title, xl) in enumerate(subj_panels):
         med, lo, hi = subj_stats(mat)
-        dotplot_panel(fig.add_subplot(gs[1, c]), med, lo, hi, title, xl)
+        dotplot_panel(fig.add_subplot(gs[1, c]), med, lo, hi,
+                      understood_eq_felt, title, xl,
+                      add_legend=(c == 5))
 
     out = "param_recovery.png"
     plt.savefig(out, dpi=150, bbox_inches="tight")
