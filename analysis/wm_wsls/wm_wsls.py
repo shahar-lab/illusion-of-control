@@ -241,13 +241,10 @@ def scatter_plot(wm_k, wsls_beta, colors, idata, wm_k_z):
 
     # CI bars
     ci90 = np.quantile(slope_raw_draws, [0.05, 0.95])
-    ci80 = np.quantile(slope_raw_draws, [0.10, 0.90])
     med  = float(np.median(slope_raw_draws))
     CI_Y = -0.08
     ax_post.plot([ci90[0], ci90[1]], [CI_Y, CI_Y],
                  color="#404040", linewidth=1.0, solid_capstyle="round")
-    ax_post.plot([ci80[0], ci80[1]], [CI_Y, CI_Y],
-                 color="#404040", linewidth=2.5, solid_capstyle="round")
     ax_post.plot(med, CI_Y, "o", color="#404040", markersize=5, zorder=5)
     ax_post.axvline(med, color="#888888", linestyle="--", linewidth=0.5, alpha=0.7)
 
