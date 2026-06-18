@@ -140,7 +140,6 @@ ZERO_COL   = "#666666"
 def posterior_panel(ax, draws, group_info, n_in_sample):
     med  = float(np.median(draws))
     pd_  = max(np.mean(draws > 0), np.mean(draws < 0)) * 100
-    ci80 = np.quantile(draws, [0.10, 0.90])
     ci90 = np.quantile(draws, [0.05, 0.95])
 
     kde  = gaussian_kde(draws, bw_method="scott")
@@ -151,10 +150,8 @@ def posterior_panel(ax, draws, group_info, n_in_sample):
     ax.fill_between(xs, ys, color=GREY_FILL, linewidth=0)
 
     CI_Y = -0.07
-    # 90 % CI (thin)
+    # 90 % CI
     ax.plot([ci90[0], ci90[1]], [CI_Y, CI_Y], color=GREY_LINE, linewidth=1.0, solid_capstyle="round")
-    # 80 % CI (thick)
-    ax.plot([ci80[0], ci80[1]], [CI_Y, CI_Y], color=GREY_LINE, linewidth=2.5, solid_capstyle="round")
     # median dot
     ax.plot(med, CI_Y, "o", color=GREY_LINE, markersize=5, zorder=5)
 
