@@ -257,7 +257,6 @@ def build_model_2(tensors):
 def density_panel(ax, draws, title, xlabel, fill_color):
     med  = float(np.median(draws))
     pd_  = max(np.mean(draws > 0), np.mean(draws < 0)) * 100
-    ci80 = np.quantile(draws, [0.10, 0.90])
     ci90 = np.quantile(draws, [0.05, 0.95])
     kde  = gaussian_kde(draws)
     xs   = np.linspace(draws.min(), draws.max(), 512)
@@ -265,7 +264,6 @@ def density_panel(ax, draws, title, xlabel, fill_color):
     CI_Y = -0.08
     ax.fill_between(xs, ys, color=fill_color, linewidth=0)
     ax.plot([ci90[0], ci90[1]], [CI_Y]*2, color=GREY_LINE, lw=1.0, solid_capstyle="round")
-    ax.plot([ci80[0], ci80[1]], [CI_Y]*2, color=GREY_LINE, lw=2.5, solid_capstyle="round")
     ax.plot(med, CI_Y, "o", color=GREY_LINE, ms=4, zorder=5)
     ax.axvline(0, color="#666666", ls="--", lw=0.8, alpha=0.7)
     ax.text(med, 1.12, f"med={med:.2f}\npd={pd_:.1f}%",
