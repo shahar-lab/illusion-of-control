@@ -51,9 +51,9 @@ GROUPS = [
     {
         "label":    "Felt = instructed",
         "n_total":  18,
-        "n_omit":   4,
-        "exclude":  FELT_DIFFERENT,
-        "omit_note": "4 excluded (reported felt odds differed)",
+        "n_omit":   5,
+        "exclude":  FELT_DIFFERENT | MISUNDERSTOOD,
+        "omit_note": "5 excluded (felt odds differed or misreported instructions)",
     },
 ]
 

@@ -171,71 +171,45 @@ def fit_regression(wsls_beta, wm_k):
     return idata, wm_k_z
 
 
-# ── 5. scatter plot ──────────────────────────────────────────────────────────
+# ── 5. figure: scatter + slope posterior ─────────────────────────────────────
 def scatter_plot(wm_k, wsls_beta, colors, idata, wm_k_z):
-    fig, ax = plt.subplots(figsize=(5, 5))
-
-    # plot points coloured by understood_eq_felt
-    for i in range(len(wm_k)):
-        ax.scatter(wm_k[i], wsls_beta[i],
-                   color=colors[i], s=40, alpha=0.85, zorder=3)
-
-    # --- Bayesian regression posterior predictive band ---
     slope_draws     = idata.posterior["slope"].values.flatten()
     intercept_draws = idata.posterior["intercept"].values.flatten()
-    wm_k_std = np.std(wm_k)
+    wm_k_std  = np.std(wm_k)
     wm_k_mean = np.mean(wm_k)
+    slope_raw_draws = slope_draws / wm_k_std   # back to original (per-K-unit) scale
 
-    x_grid_z = np.linspace(wm_k_z.min(), wm_k_z.max(), 200)
-    x_grid   = x_grid_z * wm_k_std + wm_k_mean
+    fig, (ax_sc, ax_post) = plt.subplots(1, 2, figsize=(10, 4.5))
+
+    # ── left panel: scatter ───────────────────────────────────────────────────
+    for i in range(len(wm_k)):
+        ax_sc.scatter(wm_k[i], wsls_beta[i],
+                      color=colors[i], s=45, alpha=0.85, zorder=3)
+
+    # posterior predictive band
+    x_lo = 0.0
+    x_hi = wm_k.max() * 1.05
+    x_grid   = np.linspace(x_lo, x_hi, 200)
+    x_grid_z = (x_grid - wm_k_mean) / wm_k_std
 
     y_grid = (intercept_draws[:, None]
               + slope_draws[:, None] * x_grid_z[None, :])
     y_lo, y_med, y_hi = np.quantile(y_grid, [0.05, 0.50, 0.95], axis=0)
 
-    ax.fill_between(x_grid, y_lo, y_hi, color="#56B4E9", alpha=0.25, zorder=1)
-    ax.plot(x_grid, y_med, color="#0072B2", linewidth=1.5, zorder=2,
-            label="Bayesian trend (90% CI)")
+    ax_sc.fill_between(x_grid, y_lo, y_hi, color="#56B4E9", alpha=0.25, zorder=1)
+    ax_sc.plot(x_grid, y_med, color="#0072B2", linewidth=1.5, zorder=2)
 
-    # --- equal-length axes (plot-scatter skill: coord_fixed equivalent) ---
-    xmin, xmax = wm_k.min(), wm_k.max()
-    ymin, ymax = wsls_beta.min(), wsls_beta.max()
-    shared_lo = min(xmin, ymin) - 0.15
-    shared_hi = max(xmax, ymax) + 0.15
-    ax.set_xlim(shared_lo, shared_hi)
-    ax.set_ylim(shared_lo, shared_hi)
-    ax.set_aspect("equal")
+    # axes
+    y_pad = (wsls_beta.max() - wsls_beta.min()) * 0.12
+    ax_sc.set_xlim(x_lo, x_hi)
+    ax_sc.set_ylim(wsls_beta.min() - y_pad, wsls_beta.max() + y_pad)
 
-    # --- identity line (dashed grey, per skill) ---
-    ax.axline((shared_lo, shared_lo), slope=1,
-              color="grey", linestyle="--", linewidth=0.8, alpha=0.7, zorder=0)
+    # Pearson r (top-right)
+    r, _ = pearsonr(wm_k, wsls_beta)
+    ax_sc.annotate(f"Pearson r = {r:.2f}",
+                   xy=(0.97, 0.97), xycoords="axes fraction",
+                   ha="right", va="top", fontsize=8.5, color="#555555")
 
-    # --- Pearson r annotation (top-right) ---
-    r, p = pearsonr(wm_k, wsls_beta)
-    ax.annotate(f"[Pearson r = {r:.2f}]",
-                xy=(1.0, 1.0), xycoords="axes fraction",
-                xytext=(-8, -8), textcoords="offset points",
-                ha="right", va="top", fontsize=8, color="#555555")
-
-    # --- posterior slope annotation ---
-    slope_raw_draws = slope_draws / np.std(wm_k)  # back to original units
-    slope_med = float(np.median(slope_raw_draws))
-    ci90 = np.quantile(slope_raw_draws, [0.05, 0.95])
-    pd_val = max(np.mean(slope_raw_draws > 0),
-                 np.mean(slope_raw_draws < 0)) * 100
-    ax.annotate(f"slope = {slope_med:.2f} [{ci90[0]:.2f}, {ci90[1]:.2f}]\npd = {pd_val:.1f}%",
-                xy=(0.03, 0.97), xycoords="axes fraction",
-                ha="left", va="top", fontsize=7.5, color="#333333",
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="none", alpha=0.7))
-
-    # --- tick marks: 4 ticks per axis ---
-    ticks = np.linspace(shared_lo, shared_hi, 4)
-    ax.set_xticks(ticks)
-    ax.set_yticks(ticks)
-    ax.xaxis.set_major_formatter(plt.FormatStrFormatter("%.1f"))
-    ax.yaxis.set_major_formatter(plt.FormatStrFormatter("%.1f"))
-
-    # --- legend for understood_eq_felt ---
     from matplotlib.lines import Line2D
     legend_els = [
         Line2D([0], [0], marker="o", color="w", markerfacecolor=COL_YES,
@@ -243,13 +217,51 @@ def scatter_plot(wm_k, wsls_beta, colors, idata, wm_k_z):
         Line2D([0], [0], marker="o", color="w", markerfacecolor=COL_NO,
                markersize=7, label="understood ≠ felt (n=5)"),
     ]
-    ax.legend(handles=legend_els, fontsize=7.5, loc="lower right",
-              framealpha=0.8, edgecolor="none")
+    ax_sc.legend(handles=legend_els, fontsize=7.5, loc="lower left",
+                 framealpha=0.8, edgecolor="none")
 
-    ax.set_xlabel("Working memory capacity (K)", fontsize=10)
-    ax.set_ylabel(r"WSLS reward effect ($\beta_j$, log-odds)", fontsize=10)
-    ax.tick_params(labelsize=8)
-    ax.spines[["top", "right"]].set_visible(False)
+    ax_sc.set_xlabel("Working memory capacity (K)", fontsize=10)
+    ax_sc.set_ylabel(r"WSLS reward effect ($\beta_j$, log-odds)", fontsize=10)
+    ax_sc.tick_params(labelsize=8)
+    ax_sc.spines[["top", "right"]].set_visible(False)
+
+    # ── right panel: slope posterior ─────────────────────────────────────────
+    kde  = gaussian_kde(slope_raw_draws, bw_method="scott")
+    xs   = np.linspace(slope_raw_draws.min() * 1.15, slope_raw_draws.max() * 1.15, 512)
+    ys   = kde(xs)
+    ys   = ys / ys.max()
+
+    ax_post.fill_between(xs, ys, color="#c8c8c8", linewidth=0)
+    ax_post.axvline(0, color="#666666", linestyle="--", linewidth=0.9, alpha=0.8)
+
+    # CI bars
+    ci90 = np.quantile(slope_raw_draws, [0.05, 0.95])
+    ci80 = np.quantile(slope_raw_draws, [0.10, 0.90])
+    med  = float(np.median(slope_raw_draws))
+    CI_Y = -0.08
+    ax_post.plot([ci90[0], ci90[1]], [CI_Y, CI_Y],
+                 color="#404040", linewidth=1.0, solid_capstyle="round")
+    ax_post.plot([ci80[0], ci80[1]], [CI_Y, CI_Y],
+                 color="#404040", linewidth=2.5, solid_capstyle="round")
+    ax_post.plot(med, CI_Y, "o", color="#404040", markersize=5, zorder=5)
+    ax_post.axvline(med, color="#888888", linestyle="--", linewidth=0.5, alpha=0.7)
+
+    pd_val = max(np.mean(slope_raw_draws > 0),
+                 np.mean(slope_raw_draws < 0)) * 100
+    ax_post.text(med, 1.22,
+                 f"median = {med:.2f}\npd = {pd_val:.1f}%",
+                 ha="center", va="top", fontsize=8, color="#555555")
+
+    max_abs = max(abs(slope_raw_draws.min()), abs(slope_raw_draws.max())) * 1.1
+    ax_post.set_xlim(-max_abs, max_abs)
+    ax_post.set_ylim(CI_Y - 0.15, 1.5)
+
+    ax_post.set_xlabel(r"Slope (WSLS $\beta$ per K unit)", fontsize=10)
+    ax_post.spines[["top", "right", "left"]].set_visible(False)
+    ax_post.yaxis.set_visible(False)
+    ax_post.spines["bottom"].set_color("#888888")
+    ax_post.tick_params(axis="x", labelsize=8)
+    ax_post.set_title("Slope posterior\n(Bayesian linear regression)", fontsize=10, pad=6)
 
     plt.tight_layout()
     plt.savefig(OUT_PNG, dpi=150, bbox_inches="tight")
