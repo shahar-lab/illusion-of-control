@@ -74,8 +74,13 @@ def load_wm_scores(wm_dir):
             trials = exp[exp["set_size"] == ss]
             if len(trials) == 0:
                 continue
-            acc = trials["acc_bool"].mean()
-            k   = ss * (2 * acc - 1)
+            diff_trials = trials[trials["condition"] == "d"]
+            same_trials = trials[trials["condition"] == "s"]
+            if len(diff_trials) == 0 or len(same_trials) == 0:
+                continue
+            hit_rate = diff_trials["acc_bool"].mean()
+            cr_rate  = same_trials["acc_bool"].mean()
+            k = ss * (hit_rate + cr_rate - 1)
             k_vals.append(k)
 
         rows.append({"pid": pid, "wm_k": float(np.mean(k_vals)) if k_vals else np.nan})
