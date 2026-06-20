@@ -87,7 +87,12 @@ def running_wsls(choices, rewards, window=WINDOW):
     return np.arange(window + 1, T + 1), wsls
 
 
-def plot_wsls_rt(subjects, rt_lim, out_path):
+def plot_wsls_rt(subjects, mu_rt, rt_half, out_path):
+    """
+    mu_rt    : global mean RT (ms) — maps to y=0 on right axis
+    rt_half  : half-range of right axis in ms, chosen so that
+               1 SD of RT looks like 1 SD of WSLS visually
+    """
     n     = len(subjects)
     ncols = 5
     nrows = int(np.ceil(n / ncols))
@@ -100,17 +105,19 @@ def plot_wsls_rt(subjects, rt_lim, out_path):
         ax_r = ax_l.twinx()
 
         ax_l.axhline(0, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
+        ax_r.axhline(mu_rt, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
         for bs in BLOCK_STARTS:
             ax_l.axvline(bs, color=BLOCK_COL, linewidth=0.8, zorder=1)
 
-        # RT — right y-axis, all trials
-        trial_x = np.arange(1, len(s["rt"]) + 1)
-        ax_r.plot(trial_x, s["rt"], color=RT_COL, linewidth=0.7, alpha=0.6, zorder=2)
-        ax_r.set_ylim(0, rt_lim)
+        # RT — right y-axis, trials 31+
+        trial_x = np.arange(WINDOW + 1, len(s["rt"]) + 1)
+        rt_vals = s["rt"][WINDOW:]
+        ax_r.plot(trial_x, rt_vals, color=RT_COL, linewidth=0.7, alpha=0.6, zorder=2)
+        ax_r.set_ylim(mu_rt - rt_half, mu_rt + rt_half)
         ax_r.set_ylabel("RT (ms)", fontsize=6, color=RT_COL)
         ax_r.tick_params(axis="y", labelsize=5, labelcolor=RT_COL)
 
-        # WSLS — left y-axis, trial 31+
+        # WSLS — left y-axis, trials 31+
         ax_l.plot(s["x"], s["wsls"], color=WSLS_COL, linewidth=1.1, alpha=0.9, zorder=3)
         ax_l.set_ylim(-1.05, 1.05)
         ax_l.set_ylabel("WSLS", fontsize=6, color=WSLS_COL)
@@ -121,7 +128,7 @@ def plot_wsls_rt(subjects, rt_lim, out_path):
             f"  med(RT)={np.nanmedian(s['rt']):.0f} ms",
             fontsize=6, pad=3,
         )
-        ax_l.set_xlim(1, 150)
+        ax_l.set_xlim(WINDOW + 1, 150)
         ax_l.set_xlabel("Trial", fontsize=6)
         ax_l.tick_params(axis="x", labelsize=5)
         ax_l.spines[["top"]].set_visible(False)
@@ -137,7 +144,8 @@ def plot_wsls_rt(subjects, rt_lim, out_path):
         axes_flat[j].set_visible(False)
 
     fig.suptitle(
-        "P(stay|win)−P(stay|loss) [blue, left]  ·  Response time [purple, right]",
+        "P(stay|win)−P(stay|loss) [blue, left]  ·  Response time [purple, right]  "
+        f"(right axis centred at mean RT = {mu_rt:.0f} ms)",
         fontsize=10, y=1.01,
     )
     plt.tight_layout()
@@ -158,12 +166,19 @@ def main():
 
     valid.sort(key=lambda s: s["median_wsls"])
 
-    # global RT ceiling: 99th percentile across all subjects (clips outlier timeouts)
-    all_rt    = np.concatenate([s["rt"] for s in valid])
-    rt_lim    = np.nanpercentile(all_rt, 99) * 1.05
-    print(f"RT y-axis ceiling (99th pct): {rt_lim:.0f} ms")
+    # ── global scaling: trials 31+ only ──────────────────────────────────────
+    all_rt_31   = np.concatenate([s["rt"][WINDOW:] for s in valid])
+    all_wsls    = np.concatenate([s["wsls"] for s in valid])
+    mu_rt       = np.nanmean(all_rt_31)
+    std_rt      = np.nanstd(all_rt_31)
+    std_wsls    = np.nanstd(all_wsls[~np.isnan(all_wsls)])
+    # right axis half-range: 1 SD of RT maps to 1 SD of WSLS visually
+    rt_half     = 1.05 * (std_rt / std_wsls)
+    print(f"Global mean RT (trials 31+): {mu_rt:.0f} ms")
+    print(f"RT std: {std_rt:.0f} ms  |  WSLS std: {std_wsls:.3f}")
+    print(f"Right axis: [{mu_rt - rt_half:.0f}, {mu_rt + rt_half:.0f}] ms")
 
-    plot_wsls_rt(valid, rt_lim=rt_lim, out_path="running_wsls_rt.png")
+    plot_wsls_rt(valid, mu_rt=mu_rt, rt_half=rt_half, out_path="running_wsls_rt.png")
     print("Done.")
 
 
