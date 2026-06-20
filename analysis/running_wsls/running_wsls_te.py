@@ -10,24 +10,20 @@ P_actor[s, a] = P(win | prev_outcome=s, arm=a), init 0.5
 P_spec[s]     = P(win | prev_outcome=s),         init 0.5
 Ω             = leaky integrator of instantaneous TE, init 0
 
-inst_causality (standard): P_actor(S'_obs | A, S) − P_spec(S'_obs | S)
-  — sign flips on loss trials (observing 0 means we use the "loss" column)
+Two approaches, both plotted on the same 13 panels:
 
-inst_causality (always-win, approach 3): P_actor(win | A, S) − P_spec(win | S)
-  — always the win column; subjects attend to arm's win probability regardless
-    of the actual outcome (illusion of control: "I expect to win")
+  Approach 1 — Personalized paper parameters, standard TE
+    Per-subject z-score from RL-fit α distribution (13 valid subjects),
+    mapped onto Uncontrollable-Group paper parameters (Ligneul et al. 2022):
+      α_SAS'_i = α_SS'_i = clip(0.47 + z_i × 0.23, ε, 1−ε)
+      α_Ω_i               = clip(0.41 + z_i × 0.18, ε, 1−ε)
+    inst_causality (standard): P_actor(S'_obs | A, S) − P_spec(S'_obs | S)
+      — sign flips on loss trials
 
-Three α approaches:
-  A1  fixed α = 0.537 for all subjects
-      (group posterior median from our RL fit: sigmoid(median(mu_alpha)))
-  A2  per-subject α (posterior median from draws_m1.nc, M1 RL model)
-  A3  per-subject α same as A2, but inst_causality uses always-win formula
-
-All three:
-  • same α for P_actor, P_spec, and Ω updates
-  • no block-boundary resets
-  • trial 1 skipped (no previous outcome)
-  • Ω plotted from trial 31 onward (matching the WSLS 30-trial rolling window)
+  Approach 2 — RL α, always-win TE
+    All three rates = per-subject median RL α (posterior from draws_m1.nc).
+    inst_causality (always-win): P_actor(win | A, S) − P_spec(win | S)
+      — always the win column; captures illusion-of-control framing
 """
 
 import os
@@ -39,7 +35,6 @@ import arviz as az
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
 
 warnings.filterwarnings("ignore")
 
@@ -59,16 +54,20 @@ FELT_DIFFERENT = {
 }
 EXCLUDED = MISUNDERSTOOD | FELT_DIFFERENT
 
-KEY_TO_ARM = {"arrowleft": 0, "arrowup": 1, "arrowright": 2}
-WINDOW     = 30
+KEY_TO_ARM   = {"arrowleft": 0, "arrowup": 1, "arrowright": 2}
+WINDOW       = 30
+EPS          = 1e-6
 
-# approach 1: fixed group-level α
-ALPHA_GROUP = 0.537
+# ── paper parameters (Ligneul 2022, Uncontrollable Group) ────────────────────
+PAPER_MU_SAS  = 0.47
+PAPER_SD_SAS  = 0.23
+PAPER_MU_OM   = 0.41
+PAPER_SD_OM   = 0.18
 
-
-# ── colours ──────────────────────────────────────────────────────────────────
-WSLS_COL  = "#0072B2"   # Okabe-Ito blue
-OMG_COL   = "#D55E00"   # Okabe-Ito vermillion
+# ── colours (Okabe-Ito palette) ───────────────────────────────────────────────
+WSLS_COL  = "#0072B2"   # blue
+P1_COL    = "#D55E00"   # vermillion  — personalized paper α, standard TE
+P2_COL    = "#009E73"   # bluish-green — RL α, always-win TE
 ZERO_COL  = "#888888"
 BLOCK_COL = "#cccccc"
 BLOCK_STARTS = [51, 76, 101, 126]
@@ -76,7 +75,7 @@ BLOCK_STARTS = [51, 76, 101, 126]
 
 # ── data loading ──────────────────────────────────────────────────────────────
 def load_subjects(data_dir):
-    """Load all valid subjects in sorted order (matches draws_m1.nc indexing)."""
+    """Load all subjects in sorted order (matches draws_m1.nc indexing)."""
     subjects = []
     for fname in sorted(os.listdir(data_dir)):
         if not fname.endswith(".csv"):
@@ -100,23 +99,20 @@ def load_subjects(data_dir):
         choices = gb["choice_key"].map(KEY_TO_ARM).values.astype(int)
         rewards = gb["reward"].astype(float).values
         subjects.append({
-            "pid":         pid,
-            "excluded":    pid in EXCLUDED,
-            "choices":     choices,
-            "rewards":     rewards,
+            "pid":      pid,
+            "excluded": pid in EXCLUDED,
+            "choices":  choices,
+            "rewards":  rewards,
         })
     return subjects
 
 
 def load_per_subject_alpha(draws_path, n_all):
-    """
-    Read draws_m1.nc and return median α for each of the n_all subjects
-    in the same sorted order as load_subjects().
-    """
-    idata  = az.from_netcdf(draws_path)
-    alpha  = idata.posterior["alpha_sbj"].values   # (chains, draws, subjects)
-    flat   = alpha.reshape(-1, alpha.shape[-1])    # (total_draws, subjects)
-    return np.median(flat, axis=0)                 # shape (n_all,)
+    """Return median α for each of n_all subjects from draws_m1.nc."""
+    idata = az.from_netcdf(draws_path)
+    alpha = idata.posterior["alpha_sbj"].values   # (chains, draws, subjects)
+    flat  = alpha.reshape(-1, alpha.shape[-1])    # (total_draws, subjects)
+    return np.median(flat, axis=0)                # shape (n_all,)
 
 
 # ── running WSLS ──────────────────────────────────────────────────────────────
@@ -140,18 +136,19 @@ def running_wsls(choices, rewards, window=WINDOW):
 
 
 # ── TE / Ω estimation ─────────────────────────────────────────────────────────
-def compute_omega(choices, rewards, alpha, always_win=False):
+def compute_omega(choices, rewards, alpha_sas, alpha_ss, alpha_omega,
+                  always_win=False):
     """
     Compute trial-by-trial Ω for a single subject.
 
     Parameters
     ----------
-    choices    : int array, length T
-    rewards    : float array {0,1}, length T
-    alpha      : scalar learning rate (same for actor, spectator, Ω)
-    always_win : if True, use inst_causality = P_actor(win|A,S) − P_spec(win|S)
-                 every trial (approach 3); otherwise use the observed-outcome
-                 column (approaches 1 & 2).
+    choices     : int array, length T
+    rewards     : float array {0,1}, length T
+    alpha_sas   : learning rate for P_actor (SAS' model)
+    alpha_ss    : learning rate for P_spec  (SS'  model)
+    alpha_omega : learning rate for Ω leaky integrator
+    always_win  : if True, inst = P_actor(win|A,S) − P_spec(win|S) every trial
 
     Returns
     -------
@@ -160,8 +157,8 @@ def compute_omega(choices, rewards, alpha, always_win=False):
     N_STATES = 2
     N_ARMS   = 3
 
-    P_actor = np.full((N_STATES, N_ARMS), 0.5)  # P(win | prev_outcome, arm)
-    P_spec  = np.full(N_STATES, 0.5)            # P(win | prev_outcome)
+    P_actor = np.full((N_STATES, N_ARMS), 0.5)   # P(win | prev_outcome, arm)
+    P_spec  = np.full(N_STATES, 0.5)             # P(win | prev_outcome)
     omega   = 0.0
 
     T           = len(choices)
@@ -174,38 +171,34 @@ def compute_omega(choices, rewards, alpha, always_win=False):
 
         # ── instantaneous causality ───────────────────────────────────────────
         if always_win:
-            # always look at the "win" column regardless of actual s_prime
             inst = P_actor[s, a] - P_spec[s]
         else:
-            # standard: use the probability of the OBSERVED next state
             if s_prime == 1:
                 inst = P_actor[s, a] - P_spec[s]
             else:
                 inst = (1.0 - P_actor[s, a]) - (1.0 - P_spec[s])
-                # = P_spec[s] - P_actor[s, a]  (sign flips for loss trials)
 
-        # ── update Ω (leaky integrator) ───────────────────────────────────────
-        omega = omega + alpha * (inst - omega)
+        # ── leaky-integrator Ω update ─────────────────────────────────────────
+        omega = omega + alpha_omega * (inst - omega)
         omega_trace[t] = omega
 
-        # ── update probability models (Rescorla-Wagner, actual outcomes) ──────
-        delta_actor = float(s_prime) - P_actor[s, a]
-        delta_spec  = float(s_prime) - P_spec[s]
-        P_actor[s, a] = np.clip(P_actor[s, a] + alpha * delta_actor, 1e-6, 1 - 1e-6)
-        P_spec[s]     = np.clip(P_spec[s]     + alpha * delta_spec,  1e-6, 1 - 1e-6)
+        # ── Rescorla-Wagner probability updates ───────────────────────────────
+        delta_actor   = float(s_prime) - P_actor[s, a]
+        delta_spec    = float(s_prime) - P_spec[s]
+        P_actor[s, a] = np.clip(P_actor[s, a] + alpha_sas * delta_actor, EPS, 1 - EPS)
+        P_spec[s]     = np.clip(P_spec[s]     + alpha_ss  * delta_spec,  EPS, 1 - EPS)
 
     return omega_trace
 
 
 # ── plotting ──────────────────────────────────────────────────────────────────
-def plot_approach(subjects, approach_label, out_path):
+def plot_combined(subjects, out_path):
     """
-    Draw a 3×5 grid (13 panels) of WSLS + Ω, sorted by median WSLS.
-    Each panel has a shared x-axis; WSLS on the left y-axis, Ω on the right.
+    3×5 grid (13 panels), each showing WSLS + two Ω traces, sorted by median WSLS.
     """
-    n      = len(subjects)
-    ncols  = 5
-    nrows  = int(np.ceil(n / ncols))
+    n     = len(subjects)
+    ncols = 5
+    nrows = int(np.ceil(n / ncols))
 
     fig, axes = plt.subplots(
         nrows, ncols,
@@ -219,8 +212,8 @@ def plot_approach(subjects, approach_label, out_path):
         ax_right = ax_left.twinx()
 
         # reference lines + block markers
-        for ax in (ax_left, ax_right):
-            ax.axhline(0, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
+        ax_left.axhline(0,  color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
+        ax_right.axhline(0, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
         for bs in BLOCK_STARTS:
             ax_left.axvline(bs, color=BLOCK_COL, linewidth=0.8, zorder=1)
 
@@ -234,22 +227,29 @@ def plot_approach(subjects, approach_label, out_path):
         ax_left.set_ylabel("WSLS", fontsize=6, color=WSLS_COL)
         ax_left.tick_params(axis="y", labelsize=5, labelcolor=WSLS_COL)
 
-        # ── Ω (right axis) ───────────────────────────────────────────────────
-        x_te  = s["x"]                         # same x as WSLS (trial 31..T)
-        omega = s["omega_plot"]                 # Ω values for those same trials
+        # ── Ω — personalized paper α, standard TE (vermillion) ───────────────
         ax_right.plot(
-            x_te, omega,
-            color=OMG_COL, linewidth=1.0, alpha=0.85, zorder=2,
-            label="Ω",
+            s["x"], s["omega_p1"],
+            color=P1_COL, linewidth=1.0, alpha=0.85, zorder=2,
+            label="Ω paper",
         )
-        ax_right.set_ylabel("Ω", fontsize=6, color=OMG_COL)
-        ax_right.tick_params(axis="y", labelsize=5, labelcolor=OMG_COL)
+
+        # ── Ω — RL α, always-win TE (bluish-green) ───────────────────────────
+        ax_right.plot(
+            s["x"], s["omega_p2"],
+            color=P2_COL, linewidth=1.0, alpha=0.85, zorder=2,
+            label="Ω win",
+        )
+
+        ax_right.set_ylabel("Ω", fontsize=6)
+        ax_right.tick_params(axis="y", labelsize=5)
 
         # ── panel title ──────────────────────────────────────────────────────
-        alpha_str = f"α={s['alpha_used']:.2f}" if s.get("alpha_used") is not None else ""
         ax_left.set_title(
-            f"P{i+1:02d}  med(WSLS)={s['median_wsls']:.2f}  {alpha_str}",
-            fontsize=7, pad=3,
+            f"P{i+1:02d}  med(WSLS)={s['median_wsls']:.2f}"
+            f"  α_RL={s['alpha_rl']:.2f}"
+            f"  α_SAS={s['alpha_sas']:.2f} α_Ω={s['alpha_om']:.2f}",
+            fontsize=6, pad=3,
         )
         ax_left.set_xlim(WINDOW + 1, 150)
         ax_left.set_xlabel("Trial", fontsize=6)
@@ -257,11 +257,22 @@ def plot_approach(subjects, approach_label, out_path):
         ax_left.spines[["top"]].set_visible(False)
         ax_right.spines[["top"]].set_visible(False)
 
+    # legend in first panel
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], color=WSLS_COL, linewidth=1.1, label="WSLS (left)"),
+        Line2D([0], [0], color=P1_COL,   linewidth=1.0, label="Ω paper α (right)"),
+        Line2D([0], [0], color=P2_COL,   linewidth=1.0, label="Ω always-win (right)"),
+    ]
+    axes_flat[0].legend(handles=legend_elements, fontsize=5, loc="upper left")
+
     for j in range(n, len(axes_flat)):
         axes_flat[j].set_visible(False)
 
     fig.suptitle(
-        f"P(stay|win)−P(stay|loss) [blue, left]  vs  Ω [orange, right]  —  {approach_label}",
+        "P(stay|win)−P(stay|loss) [blue, left]  ·  "
+        "Ω paper-α [vermillion, right]  ·  "
+        "Ω always-win [green, right]",
         fontsize=10, y=1.01,
     )
     plt.tight_layout()
@@ -272,79 +283,64 @@ def plot_approach(subjects, approach_label, out_path):
 
 # ── main ──────────────────────────────────────────────────────────────────────
 def main():
-    # load all 18 subjects (including excluded ones, to preserve index ordering)
+    # load all subjects (preserve index ordering for draws_m1.nc)
     all_subjects = load_subjects(DATA_DIR)
     n_all        = len(all_subjects)
     print(f"Total subjects loaded: {n_all}")
 
-    # per-subject α from RL model fit (all 18, then we select valid ones)
     alpha_per_subj = load_per_subject_alpha(DRAWS_PATH, n_all)
     print(f"Per-subject α (M1 posterior medians): {np.round(alpha_per_subj, 3)}")
 
-    # attach alphas and exclude
+    # attach RL alphas and filter to valid subjects
     valid = []
     for i, s in enumerate(all_subjects):
         s["alpha_rl"] = float(alpha_per_subj[i])
         if not s["excluded"]:
             valid.append(s)
-
     print(f"Valid subjects: {len(valid)}")
 
-    # ── compute WSLS + Ω for each approach ────────────────────────────────────
+    # ── z-score personalisation across the 13 valid subjects ─────────────────
+    alpha_rl_valid = np.array([s["alpha_rl"] for s in valid])
+    mean_rl = alpha_rl_valid.mean()
+    std_rl  = alpha_rl_valid.std(ddof=1)
+    print(f"RL α across valid subjects — mean={mean_rl:.3f}, std={std_rl:.3f}")
+
+    for s in valid:
+        z_i = (s["alpha_rl"] - mean_rl) / std_rl
+        s["alpha_sas"] = float(np.clip(PAPER_MU_SAS + z_i * PAPER_SD_SAS, EPS, 1 - EPS))
+        s["alpha_ss"]  = float(np.clip(PAPER_MU_SAS + z_i * PAPER_SD_SAS, EPS, 1 - EPS))
+        s["alpha_om"]  = float(np.clip(PAPER_MU_OM  + z_i * PAPER_SD_OM,  EPS, 1 - EPS))
+
+    # ── compute WSLS and both Ω traces ────────────────────────────────────────
     for s in valid:
         choices = s["choices"]
         rewards = s["rewards"]
 
-        # rolling WSLS
         s["x"], s["wsls"] = running_wsls(choices, rewards)
         s["median_wsls"]  = float(np.nanmedian(s["wsls"]))
 
-        # Ω traces (full length T)
-        omega_a1 = compute_omega(choices, rewards, ALPHA_GROUP, always_win=False)
-        omega_a2 = compute_omega(choices, rewards, s["alpha_rl"], always_win=False)
-        omega_a3 = compute_omega(choices, rewards, s["alpha_rl"], always_win=True)
+        # Approach 1: personalized paper alphas, standard TE
+        omega_p1 = compute_omega(
+            choices, rewards,
+            s["alpha_sas"], s["alpha_ss"], s["alpha_om"],
+            always_win=False,
+        )
+        # Approach 2: RL alpha for all rates, always-win TE
+        omega_p2 = compute_omega(
+            choices, rewards,
+            s["alpha_rl"], s["alpha_rl"], s["alpha_rl"],
+            always_win=True,
+        )
 
-        # slice Ω to match the WSLS x-range (trials 31..T, 1-based)
-        # s["x"] contains 1-based trial numbers starting at WINDOW+1=31
-        # omega_trace index t corresponds to 1-based trial t+1
-        # so for 1-based trial n, index = n-1
-        idx = s["x"] - 1   # 0-based indices into the omega arrays
-        s["omega_a1"] = omega_a1[idx]
-        s["omega_a2"] = omega_a2[idx]
-        s["omega_a3"] = omega_a3[idx]
+        idx = s["x"] - 1   # 0-based indices matching 1-based trial numbers
+        s["omega_p1"] = omega_p1[idx]
+        s["omega_p2"] = omega_p2[idx]
 
-    # sort by median WSLS (ascending) — same order as running_wsls.py
+    # sort by median WSLS ascending
     valid.sort(key=lambda s: s["median_wsls"])
 
-    # ── Approach 1: fixed group α ─────────────────────────────────────────────
-    for s in valid:
-        s["omega_plot"] = s["omega_a1"]
-        s["alpha_used"] = ALPHA_GROUP
-    plot_approach(
-        valid,
-        approach_label=f"A1: fixed group α = {ALPHA_GROUP:.3f}  (RL posterior median)",
-        out_path="running_wsls_te_a1.png",
-    )
-
-    # ── Approach 2: per-subject α, standard TE ───────────────────────────────
-    for s in valid:
-        s["omega_plot"] = s["omega_a2"]
-        s["alpha_used"] = s["alpha_rl"]
-    plot_approach(
-        valid,
-        approach_label="A2: per-subject α (RL fit)  ·  standard TE",
-        out_path="running_wsls_te_a2.png",
-    )
-
-    # ── Approach 3: per-subject α, always-win TE ─────────────────────────────
-    for s in valid:
-        s["omega_plot"] = s["omega_a3"]
-        s["alpha_used"] = s["alpha_rl"]
-    plot_approach(
-        valid,
-        approach_label="A3: per-subject α (RL fit)  ·  always-win TE  (inst = P_actor(win|A,S)−P_spec(win|S))",
-        out_path="running_wsls_te_a3.png",
-    )
+    # ── produce single combined figure ────────────────────────────────────────
+    plot_combined(valid, out_path="running_wsls_te.png")
 
     print("Done.")
 
