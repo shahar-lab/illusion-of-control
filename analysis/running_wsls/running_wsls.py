@@ -143,8 +143,7 @@ def main():
         axes_flat[j].set_visible(False)
 
     fig.suptitle(
-        f"Running WSLS effect  (window = {WINDOW} trials)  —  "
-        "13 subjects: understood correctly & felt odds matched",
+        "P(stay | win) − P(stay | loss)  as to 30 previous trials",
         fontsize=10, y=1.01
     )
     plt.tight_layout()
