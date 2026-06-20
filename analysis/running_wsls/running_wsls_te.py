@@ -192,10 +192,19 @@ def compute_omega(choices, rewards, alpha_sas, alpha_ss, alpha_omega,
 
 
 # ── plotting ──────────────────────────────────────────────────────────────────
-def plot_combined(subjects, out_path):
+def plot_single(subjects, omega_key, omega_col, omega_label, title, out_path):
     """
-    3×5 grid (13 panels), each showing WSLS + two Ω traces, sorted by median WSLS.
+    3×5 grid (13 panels), each showing WSLS + one Ω trace.
+
+    Parameters
+    ----------
+    omega_key   : key in subject dict for the Ω array to plot
+    omega_col   : line colour for Ω
+    omega_label : legend label for Ω
+    title       : figure suptitle
     """
+    from matplotlib.lines import Line2D
+
     n     = len(subjects)
     ncols = 5
     nrows = int(np.ceil(n / ncols))
@@ -217,32 +226,22 @@ def plot_combined(subjects, out_path):
         for bs in BLOCK_STARTS:
             ax_left.axvline(bs, color=BLOCK_COL, linewidth=0.8, zorder=1)
 
-        # ── WSLS (left axis) ─────────────────────────────────────────────────
+        # ── WSLS (left y-axis) ────────────────────────────────────────────────
         ax_left.plot(
             s["x"], s["wsls"],
             color=WSLS_COL, linewidth=1.1, alpha=0.9, zorder=3,
-            label="WSLS",
         )
         ax_left.set_ylim(-1.05, 1.05)
         ax_left.set_ylabel("WSLS", fontsize=6, color=WSLS_COL)
         ax_left.tick_params(axis="y", labelsize=5, labelcolor=WSLS_COL)
 
-        # ── Ω — personalized paper α, standard TE (vermillion) ───────────────
+        # ── Ω (right y-axis) ─────────────────────────────────────────────────
         ax_right.plot(
-            s["x"], s["omega_p1"],
-            color=P1_COL, linewidth=1.0, alpha=0.85, zorder=2,
-            label="Ω paper",
+            s["x"], s[omega_key],
+            color=omega_col, linewidth=1.0, alpha=0.85, zorder=2,
         )
-
-        # ── Ω — RL α, always-win TE (bluish-green) ───────────────────────────
-        ax_right.plot(
-            s["x"], s["omega_p2"],
-            color=P2_COL, linewidth=1.0, alpha=0.85, zorder=2,
-            label="Ω win",
-        )
-
-        ax_right.set_ylabel("Ω", fontsize=6)
-        ax_right.tick_params(axis="y", labelsize=5)
+        ax_right.set_ylabel("Ω", fontsize=6, color=omega_col)
+        ax_right.tick_params(axis="y", labelsize=5, labelcolor=omega_col)
 
         # ── panel title ──────────────────────────────────────────────────────
         ax_left.set_title(
@@ -257,24 +256,16 @@ def plot_combined(subjects, out_path):
         ax_left.spines[["top"]].set_visible(False)
         ax_right.spines[["top"]].set_visible(False)
 
-    # legend in first panel
-    from matplotlib.lines import Line2D
     legend_elements = [
-        Line2D([0], [0], color=WSLS_COL, linewidth=1.1, label="WSLS (left)"),
-        Line2D([0], [0], color=P1_COL,   linewidth=1.0, label="Ω paper α (right)"),
-        Line2D([0], [0], color=P2_COL,   linewidth=1.0, label="Ω always-win (right)"),
+        Line2D([0], [0], color=WSLS_COL, linewidth=1.1, label="WSLS"),
+        Line2D([0], [0], color=omega_col, linewidth=1.0, label=omega_label),
     ]
     axes_flat[0].legend(handles=legend_elements, fontsize=5, loc="upper left")
 
     for j in range(n, len(axes_flat)):
         axes_flat[j].set_visible(False)
 
-    fig.suptitle(
-        "P(stay|win)−P(stay|loss) [blue, left]  ·  "
-        "Ω paper-α [vermillion, right]  ·  "
-        "Ω always-win [green, right]",
-        fontsize=10, y=1.01,
-    )
+    fig.suptitle(title, fontsize=10, y=1.01)
     plt.tight_layout()
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -339,8 +330,31 @@ def main():
     # sort by median WSLS ascending
     valid.sort(key=lambda s: s["median_wsls"])
 
-    # ── produce single combined figure ────────────────────────────────────────
-    plot_combined(valid, out_path="running_wsls_te.png")
+    # ── Approach 1: personalized paper α, standard TE ────────────────────────
+    plot_single(
+        valid,
+        omega_key   = "omega_p1",
+        omega_col   = P1_COL,
+        omega_label = "Ω (paper α)",
+        title       = (
+            "P(stay|win)−P(stay|loss) [blue]  ·  "
+            "Ω personalised paper α [vermillion]  —  standard TE"
+        ),
+        out_path = "running_wsls_te_paper.png",
+    )
+
+    # ── Approach 2: RL α, always-win TE ──────────────────────────────────────
+    plot_single(
+        valid,
+        omega_key   = "omega_p2",
+        omega_col   = P2_COL,
+        omega_label = "Ω (always-win)",
+        title       = (
+            "P(stay|win)−P(stay|loss) [blue]  ·  "
+            "Ω RL α / always-win TE [green]"
+        ),
+        out_path = "running_wsls_te_alwayswin.png",
+    )
 
     print("Done.")
 
