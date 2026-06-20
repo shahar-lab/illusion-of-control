@@ -164,9 +164,20 @@ def omega_to_small(omega_trace, beta_om, thresh=THRESH_OM):
     return 1.0 / (1.0 + np.exp(-beta_om * (omega_trace - thresh)))
 
 
+CAPTION = (
+    r"$\Omega(t) = \Omega(t{-}1) + \alpha_\Omega\,[p_{SAS'}(S'|A,S) - p_{SS'}(S'|S) - \Omega(t{-}1)]$, "
+    r"where $p_{SAS'}$ and $p_{SS'}$ are Rescorla–Wagner estimates updated by $\alpha_{SAS'}$ "
+    r"and $\alpha_{SS'}$, respectively; all learning rates personalised by mapping each subject's "
+    r"RL-fit $\alpha$ z-score onto Uncontrollable Group distributions (Ligneul et al., 2022)."
+)
+
+
 # ── plotting ──────────────────────────────────────────────────────────────────
-def plot_wsls_omega(subjects, out_path):
-    """3×5 grid (13 panels): WSLS on left y-axis, ω on right y-axis."""
+def plot_wsls_omega(subjects, omega_lim, out_path):
+    """
+    3×5 grid (13 panels): WSLS on left y-axis, Ω on right y-axis.
+    omega_lim : shared y-limit for all right axes (global max |Ω| across subjects).
+    """
     n     = len(subjects)
     ncols = 5
     nrows = int(np.ceil(n / ncols))
@@ -178,8 +189,8 @@ def plot_wsls_omega(subjects, out_path):
         ax_l = axes_flat[i]
         ax_r = ax_l.twinx()
 
-        ax_l.axhline(0,   color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
-        ax_r.axhline(0.5, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
+        ax_l.axhline(0, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
+        ax_r.axhline(0, color=ZERO_COL, linewidth=0.7, linestyle="--", zorder=1)
         for bs in BLOCK_STARTS:
             ax_l.axvline(bs, color=BLOCK_COL, linewidth=0.8, zorder=1)
 
@@ -189,16 +200,15 @@ def plot_wsls_omega(subjects, out_path):
         ax_l.set_ylabel("WSLS", fontsize=6, color=WSLS_COL)
         ax_l.tick_params(axis="y", labelsize=5, labelcolor=WSLS_COL)
 
-        # ω — right y-axis
-        ax_r.plot(s["x"], s["small_omega"], color=OM_COL, linewidth=1.0, alpha=0.85, zorder=2)
-        ax_r.set_ylim(-0.05, 1.05)
-        ax_r.set_ylabel("ω", fontsize=6, color=OM_COL)
+        # Ω — right y-axis, fixed global scale
+        ax_r.plot(s["x"], s["big_omega"], color=OM_COL, linewidth=1.0, alpha=0.85, zorder=2)
+        ax_r.set_ylim(-omega_lim, omega_lim)
+        ax_r.set_ylabel("Ω", fontsize=6, color=OM_COL)
         ax_r.tick_params(axis="y", labelsize=5, labelcolor=OM_COL)
 
         ax_l.set_title(
             f"P{i+1:02d}  med(WSLS)={s['median_wsls']:.2f}"
-            f"  α_SAS={s['alpha_sas']:.2f}  α_Ω={s['alpha_om']:.2f}"
-            f"  β_Ω={s['beta_om']:.0f}",
+            f"  α_SAS={s['alpha_sas']:.2f}  α_Ω={s['alpha_om']:.2f}",
             fontsize=6, pad=3,
         )
         ax_l.set_xlim(WINDOW + 1, 150)
@@ -209,7 +219,7 @@ def plot_wsls_omega(subjects, out_path):
 
     legend_elements = [
         Line2D([0], [0], color=WSLS_COL, linewidth=1.1, label="WSLS"),
-        Line2D([0], [0], color=OM_COL,   linewidth=1.0, label="ω (sigmoid of Ω)"),
+        Line2D([0], [0], color=OM_COL,   linewidth=1.0, label="Ω"),
     ]
     axes_flat[0].legend(handles=legend_elements, fontsize=5, loc="upper left")
 
@@ -217,10 +227,11 @@ def plot_wsls_omega(subjects, out_path):
         axes_flat[j].set_visible(False)
 
     fig.suptitle(
-        "P(stay|win)−P(stay|loss) [blue, left]  ·  "
-        "ω = σ(β_Ω(Ω−thresh)) [vermillion, right]  —  personalised paper parameters",
+        "P(stay|win)−P(stay|loss) [blue, left]  ·  Ω [vermillion, right]  —  personalised paper parameters",
         fontsize=10, y=1.01,
     )
+    fig.text(0.5, -0.01, CAPTION, ha="center", va="top", fontsize=6.5, style="italic",
+             wrap=True, transform=fig.transFigure)
     plt.tight_layout()
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -261,7 +272,7 @@ def main():
         s["alpha_om"]  = float(np.clip(PAPER_MU_OM   + z_alpha[idx] * PAPER_SD_OM,   EPS, 1 - EPS))
         s["beta_om"]   = float(np.clip(PAPER_MU_BETA + z_beta[idx]  * PAPER_SD_BETA, EPS, np.inf))
 
-    # ── compute WSLS + Ω + ω per subject ─────────────────────────────────────
+    # ── compute WSLS + Ω per subject ─────────────────────────────────────────
     for s in valid:
         s["x"], s["wsls"] = running_wsls(s["choices"], s["rewards"])
         s["median_wsls"]  = float(np.nanmedian(s["wsls"]))
@@ -270,15 +281,17 @@ def main():
             s["choices"], s["rewards"],
             s["alpha_sas"], s["alpha_ss"], s["alpha_om"],
         )
-        small_omega_trace = omega_to_small(omega_trace, s["beta_om"])
+        trial_idx      = s["x"] - 1   # 0-based indices for 1-based trial numbers
+        s["big_omega"] = omega_trace[trial_idx]
 
-        trial_idx          = s["x"] - 1   # 0-based indices for 1-based trial numbers
-        s["small_omega"]   = small_omega_trace[trial_idx]
+    # global Ω limit: max |Ω| across all subjects (makes all right axes comparable)
+    omega_lim = max(np.nanmax(np.abs(s["big_omega"])) for s in valid) * 1.05
+    print(f"Global Ω limit: ±{omega_lim:.4f}")
 
     # sort by median WSLS ascending
     valid.sort(key=lambda s: s["median_wsls"])
 
-    plot_wsls_omega(valid, out_path="running_wsls_te_paper.png")
+    plot_wsls_omega(valid, omega_lim=omega_lim, out_path="running_wsls_te_paper.png")
     print("Done.")
 
 
