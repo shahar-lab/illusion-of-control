@@ -130,31 +130,47 @@ def running_wsls(choices, rewards, window=WINDOW):
 
 # ── TE estimation ─────────────────────────────────────────────────────────────
 def compute_omega(choices, rewards, alpha_sas, alpha_ss, alpha_omega):
-    """Return Ω trace (leaky-integrated instantaneous TE), length T, nan at t=0."""
-    P_actor     = np.full((2, 3), 0.5)
-    P_spec      = np.full(2, 0.5)
-    omega       = 0.0
+    """
+    Return Ω trace (leaky-integrated instantaneous TE), length T, nan at t=0.
+
+    Realization-matrix formulation:
+      P_actor[s, a, s'] = P(S'=s' | prev=s, arm=a)   shape (2, 3, 2)
+      P_spec[s, s']     = P(S'=s' | prev=s)           shape (2, 2)
+    Each entry is the probability that a particular next-state occurred.
+    The Rescorla-Wagner target is always 1.0 for the realized s' and the
+    complementary entry is kept as 1 − P (normalisation), so no sign flip
+    is needed in the inst calculation.
+    """
+    # realization matrices: P[..., s'] = prob that next state s' occurs
+    P_actor = np.full((2, 3, 2), 0.5)   # P(S'=s' | prev=s, arm=a)
+    P_spec  = np.full((2, 2),    0.5)   # P(S'=s' | prev=s)
+    omega   = 0.0
     T           = len(choices)
     omega_trace = np.full(T, np.nan)
 
     for t in range(1, T):
-        s       = int(rewards[t - 1])
-        a       = int(choices[t])
-        s_prime = int(rewards[t])
+        s       = int(rewards[t - 1])   # previous outcome
+        a       = int(choices[t])       # current arm
+        s_prime = int(rewards[t])       # realized next state
 
-        # standard TE: use probability of the observed outcome
-        if s_prime == 1:
-            inst = P_actor[s, a] - P_spec[s]
-        else:
-            inst = (1.0 - P_actor[s, a]) - (1.0 - P_spec[s])
+        # inst = p_actor(realized s' | a, s) − p_spec(realized s' | s)
+        inst = P_actor[s, a, s_prime] - P_spec[s, s_prime]
 
         omega = omega + alpha_omega * (inst - omega)
         omega_trace[t] = omega
 
-        delta_actor   = float(s_prime) - P_actor[s, a]
-        delta_spec    = float(s_prime) - P_spec[s]
-        P_actor[s, a] = np.clip(P_actor[s, a] + alpha_sas * delta_actor, EPS, 1 - EPS)
-        P_spec[s]     = np.clip(P_spec[s]     + alpha_ss  * delta_spec,  EPS, 1 - EPS)
+        # Rescorla-Wagner: target = 1.0 (the realized state happened)
+        P_actor[s, a, s_prime] = np.clip(
+            P_actor[s, a, s_prime] + alpha_sas * (1.0 - P_actor[s, a, s_prime]),
+            EPS, 1 - EPS,
+        )
+        P_actor[s, a, 1 - s_prime] = 1.0 - P_actor[s, a, s_prime]   # normalise
+
+        P_spec[s, s_prime] = np.clip(
+            P_spec[s, s_prime] + alpha_ss * (1.0 - P_spec[s, s_prime]),
+            EPS, 1 - EPS,
+        )
+        P_spec[s, 1 - s_prime] = 1.0 - P_spec[s, s_prime]
 
     return omega_trace
 
