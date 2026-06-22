@@ -174,23 +174,28 @@ def main():
     fig, (ax_sc, ax_post) = plt.subplots(1, 2, figsize=(10, 4.5))
 
     # ── left: scatter ─────────────────────────────────────────────────────────
+    # axes switched: x = P(stay|lose), y = P(stay|win)
+    shared_lo = 0.0
+    shared_hi = max(p_win.max(), p_lose.max()) * 1.08
+
+    # diagonal reference line (y = x)
+    ax_sc.plot([shared_lo, shared_hi], [shared_lo, shared_hi],
+               linestyle="--", color=GREY_LINE, linewidth=0.9, alpha=0.6, zorder=1)
+
     # OLS trend line
-    slope, intercept, *_ = linregress(p_win, p_lose)
-    x_lo = 0.0
-    x_hi = max(p_win.max(), p_lose.max()) * 1.08
-    x_fit = np.array([x_lo, x_hi])
+    slope, intercept, *_ = linregress(p_lose, p_win)
+    x_fit = np.array([shared_lo, shared_hi])
     ax_sc.plot(x_fit, intercept + slope * x_fit,
                color=COL_TREND, linewidth=1.2, zorder=2)
 
     for i in range(len(sdf)):
-        ax_sc.scatter(p_win[i], p_lose[i],
+        ax_sc.scatter(p_lose[i], p_win[i],
                       color=colors[i], s=50, alpha=0.85, zorder=3)
 
-    y_pad = (p_lose.max() - p_lose.min()) * 0.12
-    ax_sc.set_xlim(x_lo, x_hi)
-    ax_sc.set_ylim(0.0, p_lose.max() + y_pad)
+    ax_sc.set_xlim(shared_lo, shared_hi)
+    ax_sc.set_ylim(shared_lo, shared_hi)
 
-    r, _ = pearsonr(p_win, p_lose)
+    r, _ = pearsonr(p_lose, p_win)
     ax_sc.annotate(f"Pearson r = {r:.2f}",
                    xy=(0.97, 0.97), xycoords="axes fraction",
                    ha="right", va="top", fontsize=8.5, color="#555555")
@@ -204,8 +209,8 @@ def main():
     ax_sc.legend(handles=legend_els, fontsize=7.5, loc="upper left",
                  framealpha=0.8, edgecolor="none")
 
-    ax_sc.set_xlabel("P(stay | win)", fontsize=10)
-    ax_sc.set_ylabel("P(stay | loss)", fontsize=10)
+    ax_sc.set_xlabel("P(stay | loss)", fontsize=10)
+    ax_sc.set_ylabel("P(stay | win)", fontsize=10)
     ax_sc.tick_params(labelsize=8)
     ax_sc.spines[["top", "right"]].set_visible(False)
 
