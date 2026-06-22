@@ -3,7 +3,7 @@ Two-panel figure (style matches wm_wsls.png):
   Left  — scatter P(stay|win) vs P(stay|lose) per subject (all 18)
            Blue  #0072B2 = understood=felt (n=13)
            Orange #E69F00 = understood≠felt (n=5)
-  Right — β_mu posterior from hierarchical WSLS on the 13 included subjects
+  Right — β_mu posterior from hierarchical WSLS on all 18 subjects
 """
 
 import os
@@ -17,14 +17,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from scipy.stats import linregress, gaussian_kde
+from scipy.stats import gaussian_kde
 
 warnings.filterwarnings("ignore")
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_DIR = "../../data/ioc-all-fixed-pilot/task"
 OUT_PNG  = "wsls_scatter_posterior.png"
-DRAWS_NC = "wsls_13_draws.nc"
+DRAWS_NC = "wsls_18_draws.nc"
 
 MISUNDERSTOOD  = {"67dae998d8f2cfb8a8e3bf03"}
 FELT_DIFFERENT = {
@@ -37,7 +37,6 @@ OMITTED = MISUNDERSTOOD | FELT_DIFFERENT
 
 COL_INC   = "#0072B2"   # Okabe-Ito blue   — understood = felt
 COL_OMT   = "#E69F00"   # Okabe-Ito orange — understood ≠ felt
-COL_TREND = "#EE6677"   # Paul Tol rose
 GREY_LINE = "#404040"
 ZERO_COL  = "#666666"
 GREY_MED  = "#888888"
@@ -157,9 +156,8 @@ def main():
               for _, row in sdf.iterrows()]
     assert len(p_win) == len(p_lose)
 
-    # WSLS posterior on 13 included subjects
-    incl = [r for r in all_records if r["pid"] not in OMITTED]
-    wsls_df, pids = make_wsls_df(incl)
+    # WSLS posterior on all 18 subjects
+    wsls_df, pids = make_wsls_df(all_records)
 
     if os.path.exists(DRAWS_NC):
         print("Loading saved WSLS draws …")
@@ -181,12 +179,6 @@ def main():
     # diagonal reference line (y = x)
     ax_sc.plot([shared_lo, shared_hi], [shared_lo, shared_hi],
                linestyle="--", color=GREY_LINE, linewidth=0.9, alpha=0.6, zorder=1)
-
-    # OLS trend line
-    slope, intercept, *_ = linregress(p_lose, p_win)
-    x_fit = np.array([shared_lo, shared_hi])
-    ax_sc.plot(x_fit, intercept + slope * x_fit,
-               color=COL_TREND, linewidth=1.2, zorder=2)
 
     for i in range(len(sdf)):
         ax_sc.scatter(p_lose[i], p_win[i],
@@ -237,7 +229,7 @@ def main():
 
     ax_post.set_xlabel(r"$\beta_{\mu}$  (reward effect on log-odds of staying)",
                        fontsize=10)
-    ax_post.set_title("WSLS reward effect\nFelt = instructed  (N = 13, 5 omitted)",
+    ax_post.set_title("WSLS reward effect\nAll subjects  (N = 18)",
                       fontsize=10, pad=6)
     ax_post.spines[["top", "right", "left"]].set_visible(False)
     ax_post.yaxis.set_visible(False)
