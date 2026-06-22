@@ -149,7 +149,7 @@ for label, excl, cache in groups:
 # 2. wm_wsls: slope posterior
 print("\n=== wm_wsls ===")
 WM_DIR  = os.path.join(ROOT, "../data/ioc-all-fixed-pilot/wm")
-CACHE_WSLS = os.path.join(ROOT, "wm_wsls/wsls_13_draws.nc")
+CACHE_WSLS = os.path.join(ROOT, "wm_wsls/wsls_18_all_draws.nc")
 CACHE_REG  = os.path.join(ROOT, "wm_wsls/reg_draws.nc")
 
 # -- WM K scores (Cowan formula) --
@@ -185,16 +185,17 @@ def load_wm_k(wm_dir):
     return ks
 
 wm_k_map = load_wm_k(WM_DIR)
-incl_records = [r for r in all_records if r["pid"] not in OMITTED]
+print(f"  WM K scores loaded for {len(wm_k_map)} subjects")
 
-# -- WSLS per-subject betas --
-wsls_df, pids = make_wsls_df(all_records, OMITTED)
-idata_wsls    = fit_wsls(wsls_df, len(pids), "wm_wsls_step1", CACHE_WSLS)
-beta_draws_all = idata_wsls.posterior["beta"].values  # shape: chains×draws×subj
-beta_median    = np.median(beta_draws_all.reshape(-1, len(pids)), axis=0)
+# -- WSLS on ALL 18 subjects (matching wm_wsls.py — no exclusion before merge) --
+wsls_df_all, pids_all = make_wsls_df(all_records, set())
+idata_wsls = fit_wsls(wsls_df_all, len(pids_all), "wm_wsls_step1_all18", CACHE_WSLS)
+beta_draws_all = idata_wsls.posterior["beta"].values
+beta_median    = np.median(beta_draws_all.reshape(-1, len(pids_all)), axis=0)
 
-# align with WM K
-paired = [(wm_k_map[p], beta_median[i]) for i,p in enumerate(pids) if p in wm_k_map]
+# inner join: subjects with both WM and WSLS data
+paired = [(wm_k_map[p], beta_median[i]) for i, p in enumerate(pids_all) if p in wm_k_map]
+print(f"  Matched subjects: {len(paired)}")
 wm_k_arr   = np.array([x[0] for x in paired])
 wsls_b_arr = np.array([x[1] for x in paired])
 
