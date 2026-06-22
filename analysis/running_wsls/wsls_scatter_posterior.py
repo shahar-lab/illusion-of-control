@@ -186,6 +186,7 @@ def main():
 
     ax_sc.set_xlim(shared_lo, shared_hi)
     ax_sc.set_ylim(shared_lo, shared_hi)
+    ax_sc.set_aspect("equal")
 
     legend_els = [
         Line2D([0],[0], marker="o", color="w", markerfacecolor=COL_INC,
