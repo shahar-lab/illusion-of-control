@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from scipy.stats import pearsonr, linregress, gaussian_kde
+from scipy.stats import linregress, gaussian_kde
 
 warnings.filterwarnings("ignore")
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -194,11 +194,6 @@ def main():
 
     ax_sc.set_xlim(shared_lo, shared_hi)
     ax_sc.set_ylim(shared_lo, shared_hi)
-
-    r, _ = pearsonr(p_lose, p_win)
-    ax_sc.annotate(f"Pearson r = {r:.2f}",
-                   xy=(0.97, 0.97), xycoords="axes fraction",
-                   ha="right", va="top", fontsize=8.5, color="#555555")
 
     legend_els = [
         Line2D([0],[0], marker="o", color="w", markerfacecolor=COL_INC,
