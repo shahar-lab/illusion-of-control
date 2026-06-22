@@ -229,8 +229,7 @@ def main():
 
     ax_post.set_xlabel(r"$\beta_{\mu}$  (reward effect on log-odds of staying)",
                        fontsize=10)
-    ax_post.set_title("WSLS reward effect\nAll subjects  (N = 18)",
-                      fontsize=10, pad=6)
+
     ax_post.spines[["top", "right", "left"]].set_visible(False)
     ax_post.yaxis.set_visible(False)
     ax_post.spines["bottom"].set_color("#888888")
