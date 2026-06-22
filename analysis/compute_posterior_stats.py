@@ -162,8 +162,6 @@ def load_wm_k(wm_dir):
         if not m:
             continue
         pid = m.group(1)
-        if pid in OMITTED:
-            continue
         df  = pd.read_csv(os.path.join(wm_dir, fname), low_memory=False)
         exp = df[(df["trial_name"]=="test_squares") & (df["block_type"]=="exp")].copy()
         exp["set_size"] = pd.to_numeric(exp["set_size"], errors="coerce")
@@ -215,8 +213,10 @@ else:
                               progressbar=True, random_seed=42)
     az.to_netcdf(idata_reg, CACHE_REG)
 
-slope_draws = idata_reg.posterior["slope"].values.flatten()
-rows.append(row("WM→WSLS slope (WM K z-scored)", slope_draws, prior_sigma=2.0))
+wm_k_std    = wm_k_arr.std()
+slope_z     = idata_reg.posterior["slope"].values.flatten()
+slope_raw   = slope_z / wm_k_std   # original K-unit scale (matches plot)
+rows.append(row("WM→WSLS slope (original K scale)", slope_raw, prior_sigma=2.0/wm_k_std))
 
 # 3. param_recovery: M1 and M2
 print("\n=== param_recovery ===")
