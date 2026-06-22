@@ -116,7 +116,6 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     """Beta posterior — effect posterior, symmetric x-axis, zero ref line."""
     med  = float(np.median(beta_draws))
     pd_  = max(np.mean(beta_draws > 0), np.mean(beta_draws < 0)) * 100
-    ci80 = np.quantile(beta_draws, [0.10, 0.90])
     ci90 = np.quantile(beta_draws, [0.05, 0.95])
 
     xs  = np.linspace(beta_draws.min(), beta_draws.max(), 600)
@@ -126,7 +125,6 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
 
     CI_Y = -0.09
     ax.plot([ci90[0], ci90[1]], [CI_Y]*2, color=GREY30, lw=CI90_LW, solid_capstyle="round", zorder=3)
-    ax.plot([ci80[0], ci80[1]], [CI_Y]*2, color=GREY30, lw=CI80_LW, solid_capstyle="round", zorder=4)
     ax.plot(med, CI_Y, "o", color=GREY30, ms=5, zorder=5)
 
     ax.axvline(0,   color=GREY40, ls="--", lw=0.9)

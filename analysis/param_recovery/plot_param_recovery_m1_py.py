@@ -48,7 +48,6 @@ def xlim_noneffect(draws, pad=0.20):
 def posterior_panel(ax, draws, xlabel, is_effect=False):
     med  = float(np.median(draws))
     pd_  = max(np.mean(draws > 0), np.mean(draws < 0)) * 100
-    ci80 = np.quantile(draws, [0.10, 0.90])
     ci90 = np.quantile(draws, [0.05, 0.95])
 
     # KDE slab (gray80)
@@ -58,10 +57,9 @@ def posterior_panel(ax, draws, xlabel, is_effect=False):
     ys  = ys / ys.max()
     ax.fill_between(xs, ys, color=GREY80, linewidth=0)
 
-    # CI lines below — only thickness changes, not color
+    # 90% CI line + median point below the slab
     CI_Y = -0.08
     ax.plot([ci90[0], ci90[1]], [CI_Y]*2, color=GREY30, lw=CI90_LW, solid_capstyle="round", zorder=3)
-    ax.plot([ci80[0], ci80[1]], [CI_Y]*2, color=GREY30, lw=CI80_LW, solid_capstyle="round", zorder=4)
     ax.plot(med, CI_Y, "o", color=GREY30, ms=5, zorder=5)
 
     # zero ref (effect only)
