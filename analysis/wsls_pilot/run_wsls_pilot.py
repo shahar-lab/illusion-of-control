@@ -99,16 +99,14 @@ def fit_bayesian(df_lag):
     return idata.posterior["beta"].values.reshape(-1)
 
 def subj_props(df_lag):
-    rewarded = df_lag[df_lag["reward_nback"] == 1]
-    props = (
-        rewarded
-        .groupby("participant")["stay"]
+    """Per-subject p(stay|reward=1) and p(stay|reward=0)."""
+    return (
+        df_lag
+        .groupby(["participant", "reward_nback"])["stay"]
         .mean()
         .reset_index()
-        .rename(columns={"stay": "p_stay"})
+        .rename(columns={"stay": "p_stay", "reward_nback": "reward"})
     )
-    props["p_switch"] = 1 - props["p_stay"]
-    return props
 
 # ── panel helpers ─────────────────────────────────────────────────────────────
 
@@ -148,12 +146,14 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     ax.tick_params(axis="x", labelsize=BASE_FS - 2)
 
 def box_panel(ax, props, add_xlabel=False):
-    """Boxplots of p(stay|reward) and p(switch|reward) per subject.
-    Colors: Okabe-Ito sky blue and orange."""
-    data_vals = [props["p_stay"].values, props["p_switch"].values]
+    """Boxplots of p(stay|reward=0) and p(stay|reward=1) per subject.
+    Colors: Okabe-Ito orange (no reward) and sky blue (reward)."""
+    no_rew    = props[props["reward"] == 0]["p_stay"].values
+    rew       = props[props["reward"] == 1]["p_stay"].values
+    data_vals = [no_rew, rew]
     positions = [1, 2]
-    colors    = [OI_BLUE, OI_ORANGE]
-    labels    = ["p(stay|reward)", "p(switch|reward)"]
+    colors    = [OI_ORANGE, OI_BLUE]
+    labels    = ["p(stay | no reward)", "p(stay | reward)"]
 
     bp = ax.boxplot(
         data_vals,
