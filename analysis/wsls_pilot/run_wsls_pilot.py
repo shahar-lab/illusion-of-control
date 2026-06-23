@@ -31,7 +31,7 @@ GREY65  = "#a6a6a6"   # median line
 GREY80  = "#cccccc"   # slab fill (single posterior)
 CI80_LW = 3.0
 CI90_LW = 1.5
-BASE_FS = 20
+BASE_FS = 11
 
 # Okabe-Ito — p(stay|reward) = sky blue, p(switch|reward) = orange
 OI_BLUE   = "#56B4E9"
@@ -126,8 +126,8 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     ax.plot(med, CI_Y, "o", color=GREY30, ms=5, zorder=5)
 
     ax.axvline(med, color=GREY65, ls="--", lw=0.5)
-    ax.text(med, 0.88, f"[median = {med:.2f}, pd = {pd_:.1f}%]",
-            ha="left", va="bottom", fontsize=BASE_FS - 7, color=GREY40,
+    ax.text(med, 1.05, f"[median = {med:.2f}, pd = {pd_:.1f}%]",
+            ha="left", va="bottom", fontsize=7.5, color=GREY40,
             transform=ax.get_xaxis_transform())
 
     x_max = beta_draws.max() * 1.10
@@ -150,7 +150,7 @@ def box_panel(ax, props, add_xlabel=False):
     no_rew    = props[props["reward"] == 0]["p_stay"].values
     rew       = props[props["reward"] == 1]["p_stay"].values
     data_vals = [no_rew, rew]
-    positions = [1, 2]
+    positions = [1, 1.6]
     colors    = [OI_ORANGE, OI_BLUE]
     labels    = ["p(stay | no reward)", "p(stay | reward)"]
 
@@ -176,7 +176,8 @@ def box_panel(ax, props, add_xlabel=False):
                    edgecolors="white", linewidths=0.4, zorder=3)
 
     ax.set_xticks(positions)
-    ax.set_xticklabels(labels, fontsize=16)
+    ax.set_xticklabels(labels, fontsize=BASE_FS - 2)
+    ax.set_xlim(0.6, 2.0)
     ax.set_ylim(0, 1.05)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels(["0", ".25", ".50", ".75", "1"], fontsize=BASE_FS - 3)
