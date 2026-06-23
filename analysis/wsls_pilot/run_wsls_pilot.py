@@ -135,7 +135,7 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     ax.set_ylim(CI_Y - 0.08, 1.35)
     ax.set_title(lag_label, fontsize=BASE_FS, pad=4)
     if add_xlabel:
-        ax.set_xlabel("β  (reward effect on log-odds of staying)", fontsize=BASE_FS - 1)
+        ax.set_xlabel("β  (reward effect on log-odds of staying)", fontsize=20, labelpad=10)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -182,7 +182,7 @@ def box_panel(ax, props, add_xlabel=False):
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels(["0", ".25", ".50", ".75", "1"], fontsize=BASE_FS - 3)
     if add_xlabel:
-        ax.set_xlabel("Condition", fontsize=BASE_FS - 1)
+        ax.set_xlabel("Condition", fontsize=20, labelpad=10)
     ax.set_ylabel("Proportion", fontsize=BASE_FS - 1)
 
     ax.spines["top"].set_visible(False)
@@ -207,7 +207,7 @@ for lag in [1, 2, 3]:
 # ── figure — vertical layout: 3 lag rows × 2 columns (beta | boxplot) ─────────
 fig, axes = plt.subplots(3, 2, figsize=(10, 9))
 fig.patch.set_facecolor("white")
-fig.subplots_adjust(hspace=0.55, wspace=0.40, left=0.09, right=0.97, top=0.95, bottom=0.09)
+fig.subplots_adjust(hspace=0.55, wspace=0.40, left=0.09, right=0.97, top=0.95, bottom=0.18)
 
 panel_labels = "ABCDEF"
 for row, lag in enumerate([1, 2, 3]):
