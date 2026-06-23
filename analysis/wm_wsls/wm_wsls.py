@@ -222,8 +222,8 @@ def scatter_plot(wm_k, wsls_beta, colors, idata, wm_k_z):
         Line2D([0], [0], marker="o", color="w", markerfacecolor=COL_NO,
                markersize=7, label="understood ≠ felt (n=5)"),
     ]
-    ax_sc.legend(handles=legend_els, fontsize=14, loc="lower left",
-                 framealpha=0.8, edgecolor="none")
+    ax_sc.legend(handles=legend_els, fontsize=12, loc="lower left",
+                 framealpha=0.8, edgecolor="none", handletextpad=0.3)
 
     ax_sc.set_xlabel("Working memory capacity (K)", fontsize=16)
     ax_sc.set_ylabel(r"WSLS reward effect ($\beta_j$, log-odds)", fontsize=16)
