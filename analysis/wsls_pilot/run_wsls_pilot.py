@@ -136,7 +136,7 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     ax.set_title(lag_label, fontsize=BASE_FS, pad=4)
     if add_xlabel:
         ax.set_xlabel("β  (reward effect on log-odds of staying)", fontsize=17, labelpad=10)
-        ax.xaxis.set_label_coords(0.62, -0.12)
+        ax.xaxis.set_label_coords(0.62, -0.18)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
