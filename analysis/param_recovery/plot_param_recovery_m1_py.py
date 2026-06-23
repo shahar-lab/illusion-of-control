@@ -81,7 +81,7 @@ def posterior_panel(ax, draws, xlabel, is_effect=False):
         xl = xlim_noneffect(draws)
     ax.set_xlim(*xl)
     ax.set_ylim(CI_Y - 0.08, 1.35)
-    ax.set_xlabel(xlabel, fontsize=BASE_FS - 1, color="black")
+    ax.set_xlabel(xlabel, fontsize=16, color="black")
 
     # style: no y-axis, dark gray x-axis
     ax.spines["top"].set_visible(False)
@@ -109,7 +109,7 @@ params = [
 for i, (ax, (draws, xlabel, is_effect)) in enumerate(zip(axes, params)):
     posterior_panel(ax, draws, xlabel, is_effect=is_effect)
     ax.text(-0.05, 1.18, panel_labels[i], transform=ax.transAxes,
-            fontsize=BASE_FS + 1, fontweight="bold", va="top")
+            fontsize=16, fontweight="bold", va="top")
 
 fig.savefig("figures/param_recovery_m1_population.png", dpi=150,
             bbox_inches="tight", facecolor="white")
