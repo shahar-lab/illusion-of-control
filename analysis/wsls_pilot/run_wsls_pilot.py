@@ -31,7 +31,7 @@ GREY65  = "#a6a6a6"   # median line
 GREY80  = "#cccccc"   # slab fill (single posterior)
 CI80_LW = 3.0
 CI90_LW = 1.5
-BASE_FS = 11
+BASE_FS = 13
 
 # Okabe-Ito — p(stay|reward) = sky blue, p(switch|reward) = orange
 OI_BLUE   = "#56B4E9"
