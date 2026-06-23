@@ -225,8 +225,8 @@ def scatter_plot(wm_k, wsls_beta, colors, idata, wm_k_z):
     ax_sc.legend(handles=legend_els, fontsize=7.5, loc="lower left",
                  framealpha=0.8, edgecolor="none")
 
-    ax_sc.set_xlabel("Working memory capacity (K)", fontsize=10)
-    ax_sc.set_ylabel(r"WSLS reward effect ($\beta_j$, log-odds)", fontsize=10)
+    ax_sc.set_xlabel("Working memory capacity (K)", fontsize=16)
+    ax_sc.set_ylabel(r"WSLS reward effect ($\beta_j$, log-odds)", fontsize=16)
     ax_sc.tick_params(labelsize=8)
     ax_sc.spines[["top", "right"]].set_visible(False)
 
@@ -258,12 +258,12 @@ def scatter_plot(wm_k, wsls_beta, colors, idata, wm_k_z):
     ax_post.set_xlim(-max_abs, max_abs)
     ax_post.set_ylim(CI_Y - 0.15, 1.5)
 
-    ax_post.set_xlabel(r"Slope (WSLS $\beta$ per K unit)", fontsize=10)
+    ax_post.set_xlabel(r"Slope (WSLS $\beta$ per K unit)", fontsize=16)
     ax_post.spines[["top", "right", "left"]].set_visible(False)
     ax_post.yaxis.set_visible(False)
     ax_post.spines["bottom"].set_color("#888888")
     ax_post.tick_params(axis="x", labelsize=8)
-    ax_post.set_title("Slope posterior\n(Bayesian linear regression)", fontsize=10, pad=6)
+    ax_post.set_title("Slope posterior\n(Bayesian linear regression)", fontsize=16, pad=6)
 
     plt.tight_layout()
     plt.savefig(OUT_PNG, dpi=150, bbox_inches="tight")
