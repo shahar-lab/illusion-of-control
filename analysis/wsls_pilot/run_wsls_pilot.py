@@ -204,18 +204,16 @@ for lag in [1, 2, 3]:
     lag_results[lag] = {"beta_draws": beta_draws, "props": props}
     print(f"  β median = {np.median(beta_draws):.3f}")
 
-# ── figure — horizontal layout: 2 rows (beta | boxplot) × 3 lag columns ──────
-# Row 0 = beta posteriors for lags 1, 2, 3
-# Row 1 = boxplots for lags 1, 2, 3
-fig, axes = plt.subplots(2, 3, figsize=(13, 6))
+# ── figure — vertical layout: 3 lag rows × 2 columns (beta | boxplot) ─────────
+fig, axes = plt.subplots(3, 2, figsize=(10, 9))
 fig.patch.set_facecolor("white")
-fig.subplots_adjust(hspace=0.55, wspace=0.40, left=0.07, right=0.98, top=0.92, bottom=0.12)
+fig.subplots_adjust(hspace=0.55, wspace=0.40, left=0.09, right=0.97, top=0.95, bottom=0.09)
 
 panel_labels = "ABCDEF"
-for col, lag in enumerate([1, 2, 3]):
-    add_xl = True
-    beta_panel(axes[0, col], lag_results[lag]["beta_draws"], f"{lag}-back", add_xlabel=add_xl)
-    box_panel(axes[1, col],  lag_results[lag]["props"],                     add_xlabel=add_xl)
+for row, lag in enumerate([1, 2, 3]):
+    add_xl = (row == 2)
+    beta_panel(axes[row, 0], lag_results[lag]["beta_draws"], f"{lag}-back", add_xlabel=add_xl)
+    box_panel(axes[row, 1],  lag_results[lag]["props"],                     add_xlabel=add_xl)
 
 for i, ax in enumerate(axes.flat):
     ax.text(-0.08, 1.15, panel_labels[i], transform=ax.transAxes,
