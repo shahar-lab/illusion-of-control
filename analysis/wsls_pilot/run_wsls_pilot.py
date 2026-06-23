@@ -126,8 +126,8 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     ax.plot(med, CI_Y, "o", color=GREY30, ms=5, zorder=5)
 
     ax.axvline(med, color=GREY65, ls="--", lw=0.5)
-    ax.text(med, 1.05, f"[median = {med:.2f}, pd = {pd_:.1f}%]",
-            ha="left", va="bottom", fontsize=7.5, color=GREY40,
+    ax.text(med, 0.88, f"[median = {med:.2f}, pd = {pd_:.1f}%]",
+            ha="left", va="bottom", fontsize=BASE_FS - 7, color=GREY40,
             transform=ax.get_xaxis_transform())
 
     x_max = beta_draws.max() * 1.10
