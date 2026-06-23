@@ -150,7 +150,7 @@ def box_panel(ax, props, add_xlabel=False):
     no_rew    = props[props["reward"] == 0]["p_stay"].values
     rew       = props[props["reward"] == 1]["p_stay"].values
     data_vals = [no_rew, rew]
-    positions = [1, 1.6]
+    positions = [1, 2]
     colors    = [OI_ORANGE, OI_BLUE]
     labels    = ["p(stay | no reward)", "p(stay | reward)"]
 
@@ -177,7 +177,7 @@ def box_panel(ax, props, add_xlabel=False):
 
     ax.set_xticks(positions)
     ax.set_xticklabels(labels, fontsize=BASE_FS - 2)
-    ax.set_xlim(0.6, 2.0)
+    ax.set_xlim(0.5, 2.5)
     ax.set_ylim(0, 1.05)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels(["0", ".25", ".50", ".75", "1"], fontsize=BASE_FS - 3)
