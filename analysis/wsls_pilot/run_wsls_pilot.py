@@ -111,7 +111,7 @@ def subj_props(df_lag):
 # ── panel helpers ─────────────────────────────────────────────────────────────
 
 def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
-    """Beta posterior — effect posterior, symmetric x-axis, zero ref line."""
+    """Beta posterior — x starts at 0, y-axis visible as reference."""
     med  = float(np.median(beta_draws))
     pd_  = max(np.mean(beta_draws > 0), np.mean(beta_draws < 0)) * 100
     ci90 = np.quantile(beta_draws, [0.05, 0.95])
@@ -125,14 +125,13 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
     ax.plot([ci90[0], ci90[1]], [CI_Y]*2, color=GREY30, lw=CI90_LW, solid_capstyle="round", zorder=3)
     ax.plot(med, CI_Y, "o", color=GREY30, ms=5, zorder=5)
 
-    ax.axvline(0,   color=GREY40, ls="--", lw=0.9)
     ax.axvline(med, color=GREY65, ls="--", lw=0.5)
     ax.text(med, 1.05, f"[median = {med:.2f}, pd = {pd_:.1f}%]",
             ha="left", va="bottom", fontsize=7.5, color=GREY40,
             transform=ax.get_xaxis_transform())
 
-    m = max(abs(beta_draws.min()), abs(beta_draws.max())) * 1.10
-    ax.set_xlim(-m, m)
+    x_max = beta_draws.max() * 1.10
+    ax.set_xlim(0, x_max)
     ax.set_ylim(CI_Y - 0.08, 1.35)
     ax.set_title(lag_label, fontsize=BASE_FS, pad=4)
     if add_xlabel:
@@ -140,7 +139,7 @@ def beta_panel(ax, beta_draws, lag_label, add_xlabel=False):
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.spines["left"].set_visible(False)
+    ax.spines["left"].set_color(GREY30)
     ax.spines["bottom"].set_color(GREY30)
     ax.yaxis.set_visible(False)
     ax.tick_params(axis="x", labelsize=BASE_FS - 2)
@@ -151,7 +150,7 @@ def box_panel(ax, props, add_xlabel=False):
     no_rew    = props[props["reward"] == 0]["p_stay"].values
     rew       = props[props["reward"] == 1]["p_stay"].values
     data_vals = [no_rew, rew]
-    positions = [1, 2]
+    positions = [1, 1.6]
     colors    = [OI_ORANGE, OI_BLUE]
     labels    = ["p(stay | no reward)", "p(stay | reward)"]
 
@@ -178,6 +177,7 @@ def box_panel(ax, props, add_xlabel=False):
 
     ax.set_xticks(positions)
     ax.set_xticklabels(labels, fontsize=BASE_FS - 2)
+    ax.set_xlim(0.6, 2.0)
     ax.set_ylim(0, 1.05)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels(["0", ".25", ".50", ".75", "1"], fontsize=BASE_FS - 3)
