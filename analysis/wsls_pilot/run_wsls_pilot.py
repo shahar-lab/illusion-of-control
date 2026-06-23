@@ -176,7 +176,7 @@ def box_panel(ax, props, add_xlabel=False):
                    edgecolors="white", linewidths=0.4, zorder=3)
 
     ax.set_xticks(positions)
-    ax.set_xticklabels(labels, fontsize=BASE_FS - 2, rotation=30, ha="right")
+    ax.set_xticklabels(labels, fontsize=16)
     ax.set_ylim(0, 1.05)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels(["0", ".25", ".50", ".75", "1"], fontsize=BASE_FS - 3)
