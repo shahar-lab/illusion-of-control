@@ -177,20 +177,20 @@ def box_panel(ax, props, add_xlabel=False):
                    edgecolors="white", linewidths=0.4, zorder=3)
 
     ax.set_xticks(positions)
-    ax.set_xticklabels(labels, fontsize=18)
+    ax.set_xticklabels(labels, fontsize=14)
     ax.set_xlim(0.5, 2.5)
     ax.set_ylim(0, 1.05)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels(["0", ".25", ".50", ".75", "1"], fontsize=BASE_FS - 3)
     if add_xlabel:
         ax.set_xlabel("Condition", fontsize=18, labelpad=10)
-    ax.set_ylabel("Proportion", fontsize=BASE_FS - 1)
+    ax.set_ylabel("Proportion", fontsize=14)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["bottom"].set_color(GREY30)
     ax.spines["left"].set_color(GREY30)
-    ax.tick_params(axis="both", labelsize=BASE_FS - 2)
+    ax.tick_params(axis="y", labelsize=BASE_FS - 2)
     ax.set_facecolor("white")
 
 # ── run lags ──────────────────────────────────────────────────────────────────
