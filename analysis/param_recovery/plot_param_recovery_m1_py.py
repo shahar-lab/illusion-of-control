@@ -33,7 +33,7 @@ GREY65  = "#a6a6a6"   # median line
 GREY80  = "#cccccc"   # slab fill
 CI80_LW = 3.0
 CI90_LW = 1.5
-BASE_FS = 11
+BASE_FS = 20
 
 def xlim_effect(draws):
     """Symmetric around zero."""
@@ -92,10 +92,11 @@ def posterior_panel(ax, draws, xlabel, is_effect=False):
     ax.tick_params(axis="x", labelsize=BASE_FS - 2, colors="black")
     ax.set_facecolor("white")
 
-# ── figure: 1 row, 4 panels, wide and short ───────────────────────────────────
-fig, axes = plt.subplots(1, 4, figsize=(14, 3.2))
+# ── figure: 2 rows, 2 columns ─────────────────────────────────────────────────
+fig, axes_grid = plt.subplots(2, 2, figsize=(12, 7))
+axes = axes_grid.flatten()
 fig.patch.set_facecolor("white")
-fig.subplots_adjust(wspace=0.38, left=0.04, right=0.98, top=0.78, bottom=0.26)
+fig.subplots_adjust(wspace=0.38, hspace=0.55, left=0.06, right=0.97, top=0.88, bottom=0.14)
 
 panel_labels = "ABCD"
 params = [
