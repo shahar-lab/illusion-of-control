@@ -31,7 +31,7 @@ posterior_panel <- function(draws_vec, xlabel, is_effect = FALSE) {
   df <- data.frame(x = draws_vec)
 
   p <- ggplot(df, aes(x = x)) +
-    stat_density(geom = "area", fill = GREY80, colour = NA, bw = "SJ") +
+    stat_density(aes(y = after_stat(density / max(density))), geom = "area", fill = GREY80, colour = NA, bw = "SJ") +
     annotate("segment", x = ci90[1], xend = ci90[2], y = -0.08, yend = -0.08,
              colour = GREY30, linewidth = 0.9) +
     annotate("point",   x = med, y = -0.08, colour = GREY30, size = 2) +

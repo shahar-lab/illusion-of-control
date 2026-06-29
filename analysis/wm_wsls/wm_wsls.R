@@ -164,7 +164,7 @@ pd_val    <- max(mean(slope_raw > 0), mean(slope_raw < 0)) * 100
 df_slope <- data.frame(x = slope_raw)
 
 p_post <- ggplot(df_slope, aes(x = x)) +
-  stat_density(geom = "area", fill = GREY80, colour = NA, bw = "SJ") +
+  stat_density(aes(y = after_stat(density / max(density))), geom = "area", fill = GREY80, colour = NA, bw = "SJ") +
   geom_vline(xintercept = 0, colour = GREY40, linetype = "dashed", linewidth = 0.9) +
   geom_vline(xintercept = med_slope, colour = GREY65, linetype = "dashed", linewidth = 0.4) +
   annotate("segment", x = ci90[1], xend = ci90[2], y = -0.08, yend = -0.08,
