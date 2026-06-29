@@ -2,7 +2,7 @@
 Compute 90% CI and BF_10 (Savage-Dickey) for all plotted posteriors across:
   - wsls_belief_subgroups/wsls_three_panels.png  (3× beta_mu)
   - wm_wsls/wm_wsls.png                          (slope)
-  - param_recovery/param_recovery.png            (mu_alpha, mu_beta, mu_kappa, mu_delta from M1;
+  - param_estimation/param_estimation.png            (mu_alpha, mu_beta, mu_kappa, mu_delta from M1;
                                                    mu_kappa, mu_delta from M2)
   - running_wsls/wsls_scatter_posterior.png      (beta_mu, N=18)
 
@@ -218,12 +218,12 @@ slope_z     = idata_reg.posterior["slope"].values.flatten()
 slope_raw   = slope_z / wm_k_std   # original K-unit scale (matches plot)
 rows.append(row("WM→WSLS slope (original K scale)", slope_raw, prior_sigma=2.0/wm_k_std))
 
-# 3. param_recovery: M1 and M2
-print("\n=== param_recovery ===")
+# 3. param_estimation: M1 and M2
+print("\n=== param_estimation ===")
 flat = lambda idata, v: idata.posterior[v].values.flatten()
 
-idata_m1 = az.from_netcdf(os.path.join(ROOT, "param_recovery/draws_m1.nc"))
-idata_m2 = az.from_netcdf(os.path.join(ROOT, "param_recovery/draws_m2.nc"))
+idata_m1 = az.from_netcdf(os.path.join(ROOT, "param_estimation/draws_m1.nc"))
+idata_m2 = az.from_netcdf(os.path.join(ROOT, "param_estimation/draws_m2.nc"))
 
 rows.append(row("M1 α — group mean (sigmoid scale)", flat(idata_m1,"mu_alpha"),
                 prior_sigma=3.0, transform=sigmoid))

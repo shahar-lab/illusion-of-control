@@ -19,7 +19,7 @@ Q-values (Rescorla-Wagner):
 
 Key mapping: arrowleft=green=0, arrowup=blue=1, arrowright=red=2
 
-Output: param_recovery.png  (12 panels: 6 group + 6 subject-level)
+Output: param_estimation.png  (12 panels: 6 group + 6 subject-level)
   Row 1 (group): population-mean posterior for delta-M1, delta-M2,
                  kappa-M1, kappa-M2, alpha-M1, beta-M1
   Row 2 (subj) : per-subject median + 90% CI for same 6 quantities
@@ -414,7 +414,7 @@ def main():
                       understood_eq_felt, title, xl,
                       add_legend=(c == 5))
 
-    out = "param_recovery.png"
+    out = "param_estimation.png"
     plt.savefig(out, dpi=150, bbox_inches="tight")
     print(f"\nSaved → {out}")
 

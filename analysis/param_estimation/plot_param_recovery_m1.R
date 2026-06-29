@@ -95,7 +95,7 @@ group_fig <- (pA | pB | pC | pD) +
   ) &
   theme(plot.tag = element_text(face = "bold"))
 
-ggsave("figures/param_recovery_m1_population.png", group_fig,
+ggsave("figures/param_estimation_m1_population.png", group_fig,
        width = 14, height = 4, dpi = 150, bg = "white")
 
-message("Saved: figures/param_recovery_m1_population.png")
+message("Saved: figures/param_estimation_m1_population.png")

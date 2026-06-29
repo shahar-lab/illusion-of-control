@@ -111,6 +111,6 @@ for i, (ax, (draws, xlabel, is_effect)) in enumerate(zip(axes, params)):
     ax.text(-0.05, 1.18, panel_labels[i], transform=ax.transAxes,
             fontsize=16, fontweight="bold", va="top")
 
-fig.savefig("figures/param_recovery_m1_population.png", dpi=150,
+fig.savefig("figures/param_estimation_m1_population.png", dpi=150,
             bbox_inches="tight", facecolor="white")
-print("Saved: figures/param_recovery_m1_population.png")
+print("Saved: figures/param_estimation_m1_population.png")
