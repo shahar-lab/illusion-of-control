@@ -1,11 +1,10 @@
-Parameter,Median,90% CI,pd (%),BF₁₀
-WSLS β_μ — All participants (N=18),0.794,"[0.111, 1.446]",96.9,1.33
-WSLS β_μ — Understood correctly (N=17),0.792,"[0.088, 1.484]",97.0,1.13
-WSLS β_μ — Felt = instructed (N=13),1.117,"[0.462, 1.770]",99.6,6.76
-WM→WSLS slope (original K scale),-0.584,"[-1.119, -0.049]",96.3,0.92
-M1 α — group mean (sigmoid scale),0.676,"[0.368, 0.878]",100.0,0.41
-M1 β — group mean (raw),1.559,"[0.683, 2.496]",99.6,10.60
-M1 κ — group mean (raw),-0.274,"[-0.639, 0.079]",91.1,0.29
-M1 δ — group mean (sigmoid scale),0.863,"[0.554, 0.977]",100.0,1.89
-M2 κ — group mean (raw),0.092,"[-0.259, 0.466]",66.3,0.12
-M2 δ — group mean (sigmoid scale),0.948,"[0.736, 0.998]",100.0,7.45
+Parameter,Median,90% CI,pd (%),BF10
+WSLS <ce><b2>_<ce><bc> <e2><80><94> All N=18,0.794,"[0.111, 1.446]",96.9,1.33
+WSLS <ce><b2>_<ce><bc> <e2><80><94> N=13 (understood=felt),1.117,"[0.462, 1.770]",99.6,6.75
+WM<e2><86><92>WSLS slope (original K scale),-0.568,"[-1.087, -0.047]",96.3,0.92
+M1 <ce><b1> <e2><80><94> group mean,0.676,"[0.368, 0.878]",100,NA
+M1 <ce><b2> <e2><80><94> group mean,1.559,"[0.683, 2.496]",99.6,10.53
+M1 <ce><ba> <e2><80><94> group mean,-0.274,"[-0.639, 0.079]",91.1,0.29
+M1 <ce><b4> <e2><80><94> group mean,0.863,"[0.554, 0.977]",100,NA
+M2 <ce><ba> <e2><80><94> group mean,0.092,"[-0.259, 0.466]",66.3,0.12
+M2 <ce><b4> <e2><80><94> group mean,0.948,"[0.736, 0.998]",100,NA
