@@ -120,6 +120,7 @@ p <- ggplot(df_plot, aes(x = rt, y = effect)) +
              shape = 21, stroke = 0.6) +
   geom_hline(yintercept = 0, colour = GREY40, linetype = "dashed", linewidth = 0.9) +
   scale_x_continuous(
+    limits = range(mean_rt) + c(-30, 30),
     sec.axis = sec_axis(
       ~ .,
       breaks = mean_rt,
