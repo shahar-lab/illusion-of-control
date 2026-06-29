@@ -8,7 +8,7 @@ library(cmdstanr)
 library(posterior)
 
 DATA_DIR   <- "../../data/ioc-task/pilot20"
-MODEL_FILE <- "../../models/alpha_beta_kappa_decay/alpha_beta_kappa_decay.stan"
+MODEL_FILE <- "../../models/abkd_2arm/abkd_2arm.stan"
 DRAWS_DIR  <- "bayesian_draws"
 
 dir.create(DRAWS_DIR, showWarnings = FALSE)
