@@ -131,7 +131,7 @@ p <- ggplot(df_plot, aes(x = rt, y = effect)) +
   ) +
   labs(
     x = "RT (ms) — quantile midpoint",
-    y = "WSLS effect\np(stay|reward) − p(stay|no reward)"
+    y = "WSLS effect\np(stay|reward) - p(stay|no reward)"
   ) +
   theme_minimal(base_size = 11) +
   theme(

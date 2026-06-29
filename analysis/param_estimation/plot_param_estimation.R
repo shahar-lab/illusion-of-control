@@ -42,7 +42,7 @@ posterior_panel <- function(draws_vec, xlabel, is_effect = FALSE, fill_col = GRE
     annotate("point",   x = med, y = -0.08, colour = GREY30, size = 2) +
     geom_vline(xintercept = med, colour = GREY65, linetype = "dashed", linewidth = 0.4) +
     annotate("text", x = med, y = 1.05, label = ann_label,
-             hjust = 0, vjust = 0, size = 2.5, colour = GREY40) +
+             hjust = 0.5, vjust = 0, size = 2.5, colour = GREY40) +
     labs(x = xlabel) +
     coord_cartesian(ylim = c(-0.16, 1.35), clip = "off") +
     theme_minimal(base_size = 11) +

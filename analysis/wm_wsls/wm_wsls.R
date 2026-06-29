@@ -96,7 +96,7 @@ merged <- wm |>
   filter(!is.na(wm_k), !is.na(wsls_beta)) |>
   mutate(
     understood_eq_felt = !(participant %in% MISUNDERSTOOD) & !(participant %in% FELT_DIFFERENT),
-    color_grp = if_else(understood_eq_felt, "understood = felt", "understood ≠ felt")
+    color_grp = if_else(understood_eq_felt, "understood = felt", "understood != felt")
   )
 
 cat(sprintf("\nMerged subjects: %d\n", nrow(merged)))
@@ -135,7 +135,7 @@ p_scatter <- ggplot(merged, aes(x = wm_k, y = wsls_beta)) +
             inherit.aes = FALSE, colour = "#0072B2", linewidth = 1.5) +
   geom_point(aes(colour = color_grp), size = 2.5, alpha = 0.85) +
   scale_colour_manual(
-    values = c("understood = felt" = COL_YES, "understood ≠ felt" = COL_NO),
+    values = c("understood = felt" = COL_YES, "understood != felt" = COL_NO),
     name   = NULL
   ) +
   annotate("text", x = max(merged$wm_k) * 0.97,

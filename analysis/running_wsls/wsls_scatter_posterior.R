@@ -73,7 +73,7 @@ p_scatter <- ggplot(df_scatter, aes(x = p_loss, y = p_win)) +
   geom_point(aes(colour = understood_eq_felt), size = 2.5, alpha = 0.85) +
   scale_colour_manual(
     values = c("TRUE" = OI_BLUE, "FALSE" = OI_ORANGE),
-    labels = c("TRUE" = "understood = felt  (n=13)", "FALSE" = "understood ≠ felt  (n=5)"),
+    labels = c("TRUE" = "understood = felt  (n=13)", "FALSE" = "understood != felt  (n=5)"),
     name   = NULL
   ) +
   scale_x_continuous(limits = c(0, 1)) +
