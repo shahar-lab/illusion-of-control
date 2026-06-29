@@ -146,6 +146,6 @@ p <- ggplot(df_plot, aes(x = rt, y = effect)) +
     plot.background   = element_rect(fill = "white", colour = NA)
   )
 
-ggsave(file.path(OUT_DIR, "wsls_effect_by_rt_quantile_r.png"), p,
+ggsave(file.path(OUT_DIR, "wsls_effect_by_rt_quantile.png"), p,
        width = 7, height = 3.5, dpi = 150, bg = "white")
-cat(sprintf("\nSaved: %s/wsls_effect_by_rt_quantile_r.png\n", OUT_DIR))
+cat(sprintf("\nSaved: %s/wsls_effect_by_rt_quantile.png\n", OUT_DIR))

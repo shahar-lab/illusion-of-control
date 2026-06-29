@@ -11,7 +11,7 @@ library(posterior)
 
 DATA_TASK <- "../../data/ioc-all-fixed-pilot/task"
 DATA_WM   <- "../../data/ioc-all-fixed-pilot/wm"
-OUT_PNG   <- "wm_wsls_r.png"
+OUT_PNG   <- "wm_wsls.png"
 
 COL_YES <- "#0072B2"
 COL_NO  <- "#E69F00"

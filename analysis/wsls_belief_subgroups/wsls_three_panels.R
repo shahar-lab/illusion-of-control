@@ -121,6 +121,6 @@ fig <- Reduce(`|`, panels) +
   plot_annotation(tag_levels = "A") &
   theme(plot.tag = element_text(face = "bold"))
 
-ggsave(file.path(OUT_DIR, "wsls_three_panels_r.png"), fig,
+ggsave(file.path(OUT_DIR, "wsls_three_panels.png"), fig,
        width = 12, height = 4, dpi = 150, bg = "white")
-cat("Saved: figures/wsls_three_panels_r.png\n")
+cat("Saved: figures/wsls_three_panels.png\n")

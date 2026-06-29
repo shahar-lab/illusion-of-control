@@ -193,6 +193,6 @@ fig <- (plots[[1]] | plots[[2]]) /
   plot_annotation(tag_levels = "A") &
   theme(plot.tag = element_text(face = "bold", size = BASE_FS + 2))
 
-ggsave(file.path(OUT_DIR, "wsls_pilot_all_lags_r.png"), fig,
+ggsave(file.path(OUT_DIR, "wsls_pilot_all_lags.png"), fig,
        width = 10, height = 9, dpi = 150, bg = "white")
-cat("\nSaved: figures/wsls_pilot_all_lags_r.png\n")
+cat("\nSaved: figures/wsls_pilot_all_lags.png\n")

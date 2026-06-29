@@ -69,6 +69,6 @@ fig <- (pA | pB) / (pC | pD) +
   plot_annotation(tag_levels = "A") &
   theme(plot.tag = element_text(face = "bold", size = 17))
 
-ggsave(file.path(OUT_DIR, "param_estimation_m1_population_r.png"), fig,
+ggsave(file.path(OUT_DIR, "param_estimation_m1_population.png"), fig,
        width = 12, height = 7, dpi = 150, bg = "white")
-cat("Saved: figures/param_estimation_m1_population_r.png\n")
+cat("Saved: figures/param_estimation_m1_population.png\n")

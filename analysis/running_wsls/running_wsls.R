@@ -9,7 +9,7 @@ library(patchwork)
 library(stringr)
 
 DATA_DIR <- "../../data/ioc-all-fixed-pilot/task"
-OUT_PNG  <- "running_wsls_r.png"
+OUT_PNG  <- "running_wsls.png"
 WINDOW   <- 30
 
 MISUNDERSTOOD  <- "67dae998d8f2cfb8a8e3bf03"
