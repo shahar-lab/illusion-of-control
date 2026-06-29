@@ -116,11 +116,17 @@ df_plot <- data.frame(
 p <- ggplot(df_plot, aes(x = rt, y = effect)) +
   geom_ribbon(aes(ymin = effect - se, ymax = effect + se), fill = OI_BLUE, alpha = 0.18) +
   geom_line(colour = OI_BLUE, linewidth = 2.0) +
-  geom_point(colour = OI_BLUE, size = 2.5, fill = "white", shape = 21, stroke = 1) +
+  geom_point(colour = OI_BLUE, size = 2.5, fill = "white",
+             shape = 21, stroke = 0.6) +
   geom_hline(yintercept = 0, colour = GREY40, linetype = "dashed", linewidth = 0.9) +
   scale_x_continuous(
-    sec.axis = sec_axis(~ ., breaks = mean_rt,
-                        labels = sprintf("Q%d", bin_labels), name = NULL)
+    sec.axis = sec_axis(
+      ~ .,
+      breaks = mean_rt,
+      labels = sprintf("Q%d", bin_labels),
+      name   = NULL,
+      guide  = guide_axis(angle = 0)
+    )
   ) +
   labs(
     x = "RT (ms) — quantile midpoint",
@@ -128,12 +134,15 @@ p <- ggplot(df_plot, aes(x = rt, y = effect)) +
   ) +
   theme_minimal(base_size = 11) +
   theme(
-    panel.grid     = element_blank(),
-    axis.line.x    = element_line(colour = GREY30),
-    axis.line.y    = element_line(colour = GREY30),
-    axis.text      = element_text(size = 9),
-    axis.title     = element_text(size = 10),
-    plot.background = element_rect(fill = "white", colour = NA)
+    panel.grid        = element_blank(),
+    axis.line.x.bottom = element_line(colour = GREY30),
+    axis.line.x.top   = element_line(colour = GREY30),
+    axis.line.y       = element_line(colour = GREY30),
+    axis.text         = element_text(size = 9),
+    axis.text.x.top   = element_text(size = 7.5),
+    axis.ticks.x.top  = element_line(colour = GREY30, linewidth = 0.3),
+    axis.title        = element_text(size = 10),
+    plot.background   = element_rect(fill = "white", colour = NA)
   )
 
 ggsave(file.path(OUT_DIR, "wsls_effect_by_rt_quantile_r.png"), p,
