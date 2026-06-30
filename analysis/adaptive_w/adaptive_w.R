@@ -125,53 +125,69 @@ w_results <- trials |>
   left_join(pid_info, by = "participant")
 
 #### PLOT ####
+# Give each participant a short numeric label, sorted by understood_eq_felt then participant
+w_results <- w_results |>
+  arrange(understood_eq_felt, participant) |>
+  mutate(subj_label = sprintf("S%02d", as.integer(factor(participant, levels = unique(participant)))))
+
+# Re-attach subj_label to long format
 w_long <- w_results |>
   pivot_longer(c(w_A, w_B), names_to = "model", values_to = "w") |>
   mutate(model = factor(model,
     levels = c("w_A", "w_B"),
-    labels = c(
-      "Model A: theta_s = 0.5 (constant)",
-      "Model B: theta_s = cumulative win rate"
-    )
+    labels = c("A: theta_s = 0.5", "B: theta_s = cum. win rate")
   ))
 
-w_mean <- w_long |>
-  group_by(model, trial_seq) |>
-  summarise(w = mean(w), .groups = "drop")
+# One row per subject with the panel background fill encoding group membership
+bg_data <- w_results |>
+  distinct(subj_label, understood_eq_felt) |>
+  mutate(bg_fill = if_else(understood_eq_felt,
+                           scales::alpha(OI_BLUE,   0.07),
+                           scales::alpha(OI_ORANGE, 0.12)))
 
-p <- ggplot(w_long, aes(x = trial_seq, y = w)) +
-  geom_line(aes(group = participant, colour = understood_eq_felt),
-            alpha = 0.4, linewidth = 0.35) +
-  geom_line(data = w_mean, aes(group = model),
-            colour = GREY30, linewidth = 1.1) +
-  geom_hline(yintercept = 0.5, colour = GREY65, linetype = "dashed", linewidth = 0.5) +
+# Add bg_fill to w_long so geom_rect can find it per facet
+w_long <- w_long |>
+  left_join(bg_data, by = "subj_label")
+
+p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
+  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, fill = bg_fill),
+            inherit.aes = FALSE, data = distinct(w_long, subj_label, bg_fill)) +
+  scale_fill_identity() +
+  geom_hline(yintercept = 0.5, colour = GREY65, linetype = "dashed", linewidth = 0.4) +
+  geom_line(linewidth = 0.55, alpha = 0.85) +
   scale_colour_manual(
-    values = c("TRUE" = OI_BLUE, "FALSE" = OI_ORANGE),
-    labels = c("TRUE" = "understood = felt (N=13)", "FALSE" = "understood != felt (N=4)"),
-    name   = NULL
+    values = c("A: theta_s = 0.5" = GREY30, "B: theta_s = cum. win rate" = OI_ORANGE),
+    name   = "Model"
   ) +
-  scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1)) +
-  scale_x_continuous(breaks = c(1, 50, 100, 150)) +
-  facet_wrap(~ model, ncol = 1) +
+  scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
+                     labels = c("0", ".5", "1")) +
+  scale_x_continuous(breaks = c(1, 75, 150)) +
+  facet_wrap(~ subj_label, ncol = 5) +
   labs(
-    x = "Trial",
-    y = "w  [P(uncontrollable | data)]",
-    title = "Adaptive Pavlovian weight over trials (eta0=1, L0=0)",
-    caption = "Thin lines = individual subjects. Thick dark line = group mean. Dashed = 0.5."
+    x     = "Trial",
+    y     = "w  [P(uncontrollable | data)]",
+    title = "Adaptive w per subject (eta0 = 1, L0 = 0)",
+    caption = paste0("Panel background: blue = understood = felt (N=13), ",
+                     "orange = understood != felt (N=4). Dashed = 0.5.")
   ) +
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 10) +
   theme(
-    panel.grid       = element_blank(),
-    axis.line.x      = element_line(colour = GREY30),
-    axis.line.y      = element_line(colour = GREY30),
-    strip.text       = element_text(size = 11, colour = GREY30),
-    legend.position  = "bottom",
-    plot.title       = element_text(size = 13, colour = GREY30),
-    plot.caption     = element_text(size = 9, colour = GREY65),
-    plot.background  = element_rect(fill = "white", colour = NA),
-    panel.background = element_rect(fill = "white", colour = NA)
+    panel.grid        = element_blank(),
+    axis.line.x       = element_line(colour = GREY30, linewidth = 0.3),
+    axis.line.y       = element_line(colour = GREY30, linewidth = 0.3),
+    axis.text         = element_text(size = 7, colour = GREY40),
+    axis.title        = element_text(size = 10, colour = GREY30),
+    strip.text        = element_text(size = 8, colour = GREY30, face = "bold"),
+    strip.background  = element_rect(fill = "white", colour = NA),
+    legend.position   = "bottom",
+    legend.text       = element_text(size = 9),
+    plot.title        = element_text(size = 12, colour = GREY30),
+    plot.caption      = element_text(size = 8, colour = GREY65),
+    plot.background   = element_rect(fill = "white", colour = NA),
+    panel.background  = element_rect(fill = "white", colour = NA),
+    panel.spacing     = unit(0.6, "lines")
   )
 
 ggsave(file.path(OUT_DIR, "adaptive_w.png"), p,
-       width = 9, height = 8, dpi = 150, bg = "white")
+       width = 12, height = 10, dpi = 150, bg = "white")
 cat("Saved: figures/adaptive_w.png\n")
