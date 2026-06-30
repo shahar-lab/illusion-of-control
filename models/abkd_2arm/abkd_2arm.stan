@@ -78,7 +78,6 @@ transformed parameters {
     kappa_t = kappa_sbj[subject_trial[t]];
 
     if (first_trial_in_block[t] == 1) {
-      Q_cards = rep_vector(0.5, Narms);
       prev_choice = 0;
     }
 
