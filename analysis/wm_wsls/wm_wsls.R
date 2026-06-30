@@ -88,7 +88,7 @@ df_wsls <- bind_rows(records)
 wsls_betas <- df_wsls |>
   group_by(participant) |>
   summarise(wsls_beta = {
-    fit <- glm(stay ~ reward_nback, family = binomial(), data = cur_data())
+    fit <- glm(stay ~ reward_nback, family = binomial(), data = pick(everything()))
     coef(fit)["reward_nback"]
   }, .groups = "drop")
 
