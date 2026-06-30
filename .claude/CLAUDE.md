@@ -1,5 +1,9 @@
 You are working for shahar-lab. Keep all agents and skills in the .claude directory readily available.
 
+#### EXPERIMENT OVERVIEW ####
+
+This is an illusion-of-control cognitive experiment. Subjects choose between slot machines (luck machines) that all have identical odds of winning — there is no correct choice. The experiment asks whether people behave as if they have control (e.g. develop preferences, show win-stay patterns) even when they objectively do not. In some variants all 3 machines are available on every trial; in others only 2 are presented per trial.
+
 #### TASK STRUCTURE ####
 
 - The gambling task has multiple blocks separated by pauses. **Blocks are pauses only — the task context does not change between blocks.**
