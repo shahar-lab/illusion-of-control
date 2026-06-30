@@ -52,14 +52,12 @@ compute_running <- function(pid) {
   n  <- nrow(df)
   if (n < WINDOW + 1) return(NULL)
 
-  # lag-1 stay/reward pairs (grouped by block to avoid cross-block contamination)
+  # lag-1 stay/reward pairs
   df <- df |>
-    group_by(block_number) |>
     mutate(
       stay         = as.integer(choice_key == lag(choice_key)),
       reward_nback = lag(reward)
     ) |>
-    ungroup() |>
     filter(!is.na(stay), !is.na(reward_nback))
 
   n2 <- nrow(df)
