@@ -18,7 +18,6 @@ FELT_DIFFERENT <- c("677009b08130c3028f6a8a6d", "68598a1d4cebd213b2abb1d9",
 
 LINE_COL  <- "#0072B2"
 ZERO_COL  <- "#888888"
-BLOCK_COL <- "#cccccc"
 GREY30    <- "#4d4d4d"
 
 # ── load data ─────────────────────────────────────────────────────────────────
@@ -53,19 +52,18 @@ compute_running <- function(pid) {
   n  <- nrow(df)
   if (n < WINDOW + 1) return(NULL)
 
-  # lag-1 stay/reward pairs
+  # lag-1 stay/reward pairs (grouped by block to avoid cross-block contamination)
   df <- df |>
+    group_by(block_number) |>
     mutate(
       stay         = as.integer(choice_key == lag(choice_key)),
       reward_nback = lag(reward)
     ) |>
+    ungroup() |>
     filter(!is.na(stay), !is.na(reward_nback))
 
   n2 <- nrow(df)
   if (n2 < WINDOW) return(NULL)
-
-  # compute block boundaries for shading
-  block_starts <- which(df$block_number != lag(df$block_number, default = ""))
 
   wsls <- rep(NA_real_, n2)
   for (t in WINDOW:n2) {

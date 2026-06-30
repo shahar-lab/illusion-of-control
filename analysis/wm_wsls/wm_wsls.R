@@ -43,6 +43,8 @@ wm <- lapply(wm_files, \(f) {
     if (nrow(d) == 0 || nrow(s) == 0) return(NA)
     ss * (mean(d$acc_bool) + mean(s$acc_bool) - 1)
   })
+  n_valid_ss <- sum(!is.na(k_vals))
+  if (n_valid_ss < 2) warning(sprintf("Subject %s: only %d set size(s) have data - K may be unreliable", pid, n_valid_ss))
   data.frame(participant = pid, wm_k = mean(k_vals, na.rm = TRUE))
 }) |> bind_rows()
 
@@ -111,7 +113,6 @@ slope_se     <- summary(reg_fit)$coefficients["wm_k_z", "Std. Error"]
 int_mean     <- coef(reg_fit)["(Intercept)"]
 int_se       <- summary(reg_fit)$coefficients["(Intercept)", "Std. Error"]
 
-set.seed(42)
 slope_draws <- rnorm(4000, slope_mean, slope_se)
 int_draws   <- rnorm(4000, int_mean,   int_se)
 slope_raw   <- slope_draws / wm_k_sd   # back to per-K-unit scale
