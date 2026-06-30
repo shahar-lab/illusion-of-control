@@ -33,7 +33,7 @@ WM K (Cowan's K): `ss * (hit_rate + correct_rejection - 1)`, averaged across set
 #### MODELS ####
 
 - **abkd_2arm** (`models/abkd_2arm/`): α, β, κ, 2-arm bandit. Q values persist across blocks; perseveration resets at block start via `first_trial_in_block`.
-- **abkd_3arm / rl_m1_3arm** (`models/abkd_3arm/`): α, β, κ, δ, 3-arm bandit. Q initialized at 0.5 per subject (not per block). This is the primary M1 model.
+- **abkd_3arm** (`models/abkd_3arm.stan`): α, β, κ, δ, 3-arm bandit. Q initialized at 0.5 per subject (not per block). This is the primary M1 model.
 - **kd_3arm** (`models/kd_3arm/`): κ, δ only, 3-arm bandit.
 
 #### ANALYSIS SCRIPTS ####
