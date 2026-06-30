@@ -21,8 +21,10 @@ GREY65    <- "#a6a6a6"
 OI_BLUE   <- "#0072B2"
 OI_ORANGE <- "#E69F00"
 
-ETA0 <- 1   # prior pseudo-count per arm; learning rate on first observation = 1/(ETA0+1)
-L0   <- 0   # prior log-odds: 0 = equal prior on controllable vs uncontrollable
+ETA0      <- 1     # prior pseudo-count per arm; learning rate on first observation = 1/(ETA0+1)
+ETA0_S_A  <- 100   # prior pseudo-count for theta_s, Model A (near-constant, slow-adapting)
+ETA0_S_B  <- 1     # prior pseudo-count for theta_s, Model B (fast-adapting, cumulative-like)
+L0        <- 0     # prior log-odds: 0 = equal prior on controllable vs uncontrollable
 
 #### LOAD DATA ####
 files <- list.files(DATA_DIR, pattern = "^ioc-all_[a-f0-9]{24}_SESSION.*\\.csv$",
@@ -56,25 +58,33 @@ trials <- df_raw |>
 
 #### COMPUTE W TRAJECTORIES ####
 # One global "s"; three arms for "a".
-# Two models differ only in how theta_s is defined:
-#   Model A: theta_s = 0.5 (constant, the true win rate)
-#   Model B: theta_s = cumulative wins / cumulative trials (empirical overall rate)
+# Both theta_s (uncontrollable model) and theta_sa (controllable model, per arm) are
+# tracked with the *same* incremental Bayesian running-mean update,
+#   theta <- theta + (1/n) * (r - theta),
+# starting from a prior mean of 0.5 with n initialised to a pseudo-count eta0
+# (learning rate on the first observation = 1/(eta0+1)). The two models differ only
+# in the size of theta_s's pseudo-count:
+#   Model A: eta0_s = 100 (theta_s stays close to the prior 0.5, slow-adapting)
+#   Model B: eta0_s = 1   (theta_s adapts quickly, ~ cumulative win rate)
+# theta_s updates every trial regardless of which arm was chosen, since there is
+# only one global stimulus.
 #
-# Controllable model updates theta_sa per arm with a decaying learning rate 1/n_a.
 # Log-odds L tracks cumulative evidence favouring uncontrollable over controllable:
 #   delta_L = r * log(theta_s / theta_a) + (1-r) * log((1-theta_s) / (1-theta_a))
-# Weight: w = 1 / (1 + exp(L))
+# Weight: w = P(uncontrollable | data) = 1 / (1 + exp(-L))
 compute_w <- function(df_pid) {
   eps      <- 1e-8
   arms     <- c("arrowleft", "arrowup", "arrowright")
   theta_sa <- setNames(rep(0.5, 3), arms)   # controllable model per-arm estimates
   n_a      <- setNames(rep(ETA0, 3), arms)  # observation counts (start at pseudo-count)
 
+  theta_s_A <- 0.5
+  theta_s_B <- 0.5
+  n_s_A     <- ETA0_S_A
+  n_s_B     <- ETA0_S_B
+
   L_A <- L0
   L_B <- L0
-
-  cum_wins   <- 0
-  cum_trials <- 0
 
   n   <- nrow(df_pid)
   w_A <- numeric(n)
@@ -83,10 +93,6 @@ compute_w <- function(df_pid) {
   for (t in seq_len(n)) {
     a <- df_pid$choice_key[t]
     r <- df_pid$reward[t]
-
-    # Uncontrollable model predictions
-    theta_s_A <- 0.5
-    theta_s_B <- if (cum_trials == 0) 0.5 else cum_wins / cum_trials
 
     # Controllable model prediction for chosen arm
     theta_at <- theta_sa[[a]]
@@ -103,16 +109,18 @@ compute_w <- function(df_pid) {
     L_A <- L_A + dL_A
     L_B <- L_B + dL_B
 
-    w_A[t] <- 1 / (1 + exp(L_A))
-    w_B[t] <- 1 / (1 + exp(L_B))
+    w_A[t] <- 1 / (1 + exp(-L_A))
+    w_B[t] <- 1 / (1 + exp(-L_B))
 
     # Update controllable model per-arm estimate (decaying learning rate)
     n_a[[a]]      <- n_a[[a]] + 1
     theta_sa[[a]] <- theta_sa[[a]] + (1 / n_a[[a]]) * (r - theta_sa[[a]])
 
-    # Update cumulative stats for Model B
-    cum_wins   <- cum_wins + r
-    cum_trials <- cum_trials + 1
+    # Update uncontrollable model estimates (decaying learning rate, every trial)
+    n_s_A     <- n_s_A + 1
+    theta_s_A <- theta_s_A + (1 / n_s_A) * (r - theta_s_A)
+    n_s_B     <- n_s_B + 1
+    theta_s_B <- theta_s_B + (1 / n_s_B) * (r - theta_s_B)
   }
 
   tibble(trial_seq = seq_len(n), w_A = w_A, w_B = w_B)
@@ -135,7 +143,7 @@ w_long <- w_results |>
   pivot_longer(c(w_A, w_B), names_to = "model", values_to = "w") |>
   mutate(model = factor(model,
     levels = c("w_A", "w_B"),
-    labels = c("A: theta_s = 0.5", "B: theta_s = cum. win rate")
+    labels = c("A: theta_s slow (eta0=100)", "B: theta_s fast (eta0=1)")
   ))
 
 # One row per subject with the panel background fill encoding group membership
@@ -156,7 +164,7 @@ p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
   geom_hline(yintercept = 0.5, colour = GREY65, linetype = "dashed", linewidth = 0.4) +
   geom_line(linewidth = 0.55, alpha = 0.85) +
   scale_colour_manual(
-    values = c("A: theta_s = 0.5" = GREY30, "B: theta_s = cum. win rate" = OI_ORANGE),
+    values = c("A: theta_s slow (eta0=100)" = GREY30, "B: theta_s fast (eta0=1)" = OI_ORANGE),
     name   = "Model"
   ) +
   scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
@@ -166,7 +174,7 @@ p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
   labs(
     x     = "Trial",
     y     = "w  [P(uncontrollable | data)]",
-    title = "Adaptive w per subject (eta0 = 1, L0 = 0)",
+    title = "Adaptive w per subject (eta0_arm = 1, L0 = 0)",
     caption = paste0("Panel background: blue = understood = felt (N=13), ",
                      "orange = understood != felt (N=4). Dashed = 0.5.")
   ) +
