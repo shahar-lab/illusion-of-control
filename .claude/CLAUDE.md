@@ -4,6 +4,10 @@ You are working for shahar-lab. Keep all agents and skills in the .claude direct
 
 This is an illusion-of-control cognitive experiment. Subjects choose between slot machines (luck machines) that all have identical odds of winning — there is no correct choice. The experiment asks whether people behave as if they have control (e.g. develop preferences, show win-stay patterns) even when they objectively do not. In some variants all 3 machines are available on every trial; in others only 2 are presented per trial.
 
+The two main research questions are:
+1. **WSLS effect**: Do subjects show a win-stay lose-switch pattern? A positive reward effect on staying would indicate that subjects are treating a random outcome as informative.
+2. **Parameter estimation**: Do subjects show perseveration (κ), reinforcement learning (α), or both? Estimating these parameters from choice data lets us distinguish between a habit-like repetition bias and genuine reward-driven learning.
+
 #### TASK STRUCTURE ####
 
 - The gambling task has multiple blocks separated by pauses. **Blocks are pauses only — the task context does not change between blocks.**
