@@ -89,20 +89,43 @@ w_subj <- trials |>
   ungroup()
 
 #### COMPUTE PER-SUBJECT WSLS EFFECT SIZE ####
-# p(stay | reward) - p(stay | no reward), lag-1 pairs, no block grouping
-wsls_subj <- trials |>
+# Per-subject logistic regression beta (reward effect on log-odds of staying),
+# lag-1 pairs per participant x block — same approach as wm_wsls/wm_wsls.R
+gb <- df_raw |>
+  filter(task == "gambling_choice", as.character(block_number) != "training",
+         participant != MISUNDERSTOOD) |>
+  mutate(block_number = as.character(block_number),
+         trial_number = as.numeric(trial_number),
+         reward       = as.numeric(reward)) |>
+  arrange(participant, block_number, trial_number)
+
+records <- list()
+for (key in unique(paste(gb$participant, gb$block_number, sep = "__"))) {
+  parts <- strsplit(key, "__")[[1]]
+  pid <- parts[1]; blk <- parts[2]
+  grp <- gb |> filter(participant == pid, block_number == blk)
+  n   <- nrow(grp)
+  if (n <= 1) next
+  for (i in 2:n) {
+    row <- grp[i, ]; nback <- grp[i - 1, ]
+    if (!isTRUE(as.logical(row$is_choice_valid))) next
+    if (!isTRUE(as.logical(nback$is_choice_valid))) next
+    if (is.na(nback$choice_key) || is.na(nback$reward)) next
+    records[[length(records) + 1]] <- data.frame(
+      participant  = pid,
+      stay         = as.integer(row$choice_key == nback$choice_key),
+      reward_nback = as.integer(as.numeric(nback$reward))
+    )
+  }
+}
+df_wsls <- bind_rows(records)
+
+wsls_subj <- df_wsls |>
   group_by(participant) |>
-  mutate(
-    stay         = as.integer(choice_key == lag(choice_key)),
-    reward_nback = lag(reward)
-  ) |>
-  ungroup() |>
-  filter(!is.na(stay), !is.na(reward_nback)) |>
-  group_by(participant, reward_nback) |>
-  summarise(p_stay = mean(stay), .groups = "drop") |>
-  pivot_wider(names_from = reward_nback, values_from = p_stay,
-              names_prefix = "p_stay_r") |>
-  mutate(wsls_effect = p_stay_r1 - p_stay_r0)
+  summarise(wsls_effect = {
+    fit <- glm(stay ~ reward_nback, family = binomial(), data = pick(everything()))
+    coef(fit)["reward_nback"]
+  }, .groups = "drop")
 
 #### COMBINE ####
 S02 <- "68598a1d4cebd213b2abb1d9"  # outlier excluded from this plot
@@ -142,7 +165,7 @@ p <- ggplot(plot_df, aes(x = wsls_effect, y = mean_w_B)) +
   scale_y_continuous(breaks = round(y_breaks, 3)) +
   coord_cartesian(xlim = range(plot_df$wsls_effect) + c(-0.05, 0.05),
                   ylim = range(plot_df$mean_w_B)    + c(-0.05, 0.05)) +
-  labs(x = "WSLS effect size  [p(stay|reward) - p(stay|no reward)]",
+  labs(x = "WSLS beta  [reward effect on log-odds of staying, lag-1]",
        y = "Mean w  [P(uncontrollable | data), Model B]") +
   theme_minimal(base_size = 13) +
   theme(
