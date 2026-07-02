@@ -25,14 +25,12 @@ stopifnot(nrow(plot_df) == 13, length(plot_df$x) == length(plot_df$y))
 pearson_r <- cor(plot_df$x, plot_df$y, method = "pearson")
 cat(sprintf("Pearson r = %.3f  (n = %d)\n", pearson_r, nrow(plot_df)))
 
-# independent axis limits (different scales)
+# independent axis limits — expand y generously for readability
 x_lim <- range(plot_df$x) + c(-0.05, 0.05)
-y_lim <- range(plot_df$y) + c(-0.005, 0.005)
+y_abs <- max(abs(range(plot_df$y))) * 1.6   # symmetric, well-padded
+y_lim <- c(-y_abs, y_abs)
 x_breaks <- seq(x_lim[1], x_lim[2], length.out = 4)
 y_breaks <- seq(y_lim[1], y_lim[2], length.out = 4)
-
-# ratio makes both visual axis lengths equal
-ratio <- diff(y_lim) / diff(x_lim)
 
 p <- ggplot(plot_df, aes(x = x, y = y)) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey70") +
@@ -47,7 +45,7 @@ p <- ggplot(plot_df, aes(x = x, y = y)) +
   ) +
   scale_x_continuous(breaks = round(x_breaks, 2)) +
   scale_y_continuous(breaks = round(y_breaks, 3)) +
-  coord_fixed(ratio = ratio, xlim = x_lim, ylim = y_lim, clip = "off") +
+  coord_cartesian(xlim = x_lim, ylim = y_lim, clip = "off") +
   theme_minimal(base_size = 13) +
   theme(panel.grid.minor = element_blank()) +
   labs(
