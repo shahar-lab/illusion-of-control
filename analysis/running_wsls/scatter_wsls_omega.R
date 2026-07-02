@@ -13,8 +13,8 @@ plot_df <- data.frame(
      0.6560, -0.0431,  0.0000, -0.0634, -0.0908,  0.1667, -0.1629
   ),
   y = c(
-     0.07703,  0.04707, -0.04684, -0.00195, -0.00862, -0.00709,
-    -0.00651, -0.01084,  0.01351,  0.00561, -0.01960,  0.01074,  0.00545
+    0.25653, 0.05758, 0.09345, 0.20112, 0.11728, 0.04894,
+    0.21730, 0.05358, 0.08271, 0.12084, 0.04001, 0.04976, 0.06512
   )
 )
 
@@ -25,10 +25,9 @@ stopifnot(nrow(plot_df) == 13, length(plot_df$x) == length(plot_df$y))
 pearson_r <- cor(plot_df$x, plot_df$y, method = "pearson")
 cat(sprintf("Pearson r = %.3f  (n = %d)\n", pearson_r, nrow(plot_df)))
 
-# independent axis limits — expand y generously for readability
+# independent axis limits
 x_lim <- range(plot_df$x) + c(-0.05, 0.05)
-y_abs <- max(abs(range(plot_df$y))) * 1.6   # symmetric, well-padded
-y_lim <- c(-y_abs, y_abs)
+y_lim <- c(0, max(plot_df$y) * 1.15)
 x_breaks <- seq(x_lim[1], x_lim[2], length.out = 4)
 y_breaks <- seq(y_lim[1], y_lim[2], length.out = 4)
 
@@ -50,7 +49,7 @@ p <- ggplot(plot_df, aes(x = x, y = y)) +
   theme(panel.grid.minor = element_blank()) +
   labs(
     x = "Median WSLS  [P(stay|win) − P(stay|loss)]",
-    y = "Mean Ω  (trials 31–150)"
+    y = "Mean |Ω|  (trials 31–150)"
   )
 
 ggsave("analysis/running_wsls/scatter_wsls_omega.png",
