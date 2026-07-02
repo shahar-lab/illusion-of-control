@@ -105,10 +105,12 @@ wsls_subj <- trials |>
   mutate(wsls_effect = p_stay_r1 - p_stay_r0)
 
 #### COMBINE ####
+S02 <- "68598a1d4cebd213b2abb1d9"  # outlier excluded from this plot
+
 plot_df <- w_subj |>
   left_join(wsls_subj, by = "participant") |>
   left_join(pid_info,  by = "participant") |>
-  filter(complete.cases(mean_w_B, wsls_effect))
+  filter(complete.cases(mean_w_B, wsls_effect), participant != S02)
 
 stopifnot(nrow(plot_df) == n_distinct(plot_df$participant))
 
