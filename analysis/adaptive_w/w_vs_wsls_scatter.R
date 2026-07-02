@@ -128,12 +128,13 @@ wsls_subj <- df_wsls |>
   }, .groups = "drop")
 
 #### COMBINE ####
-S02 <- "68598a1d4cebd213b2abb1d9"  # outlier excluded from this plot
+S02 <- "68598a1d4cebd213b2abb1d9"  # low w outlier excluded
+S03 <- "69b7e04340b00585acbb91ac"  # extreme WSLS beta (logistic MLE blowup) excluded
 
 plot_df <- w_subj |>
   left_join(wsls_subj, by = "participant") |>
   left_join(pid_info,  by = "participant") |>
-  filter(complete.cases(mean_w_B, wsls_effect), participant != S02)
+  filter(complete.cases(mean_w_B, wsls_effect), !participant %in% c(S02, S03))
 
 stopifnot(nrow(plot_df) == n_distinct(plot_df$participant))
 
