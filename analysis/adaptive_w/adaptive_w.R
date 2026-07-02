@@ -22,7 +22,7 @@ OI_BLUE   <- "#0072B2"
 OI_ORANGE <- "#E69F00"
 
 ETA0      <- 1     # prior pseudo-count per arm; learning rate on first observation = 1/(ETA0+1)
-ETA0_S_B  <- 100   # prior pseudo-count for theta_s, Model B (slow-adapting Bayesian estimate)
+ETA0_S_B  <- 1     # prior pseudo-count for theta_s, Model B (fast-adapting Bayesian estimate)
 L0        <- 0     # prior log-odds: 0 = equal prior on controllable vs uncontrollable
 
 #### LOAD DATA ####
@@ -135,7 +135,7 @@ w_long <- w_results |>
   pivot_longer(c(w_A, w_B), names_to = "model", values_to = "w") |>
   mutate(model = factor(model,
     levels = c("w_A", "w_B"),
-    labels = c("A: theta_s = 0.5 (fixed)", "B: theta_s Bayes (eta0=100, slow)")
+    labels = c("A: theta_s = 0.5 (fixed)", "B: theta_s Bayes (eta0=1, fast)")
   ))
 
 # One row per subject with the panel background fill encoding group membership
@@ -156,7 +156,7 @@ p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
   geom_hline(yintercept = 0.5, colour = GREY65, linetype = "dashed", linewidth = 0.4) +
   geom_line(linewidth = 0.55, alpha = 0.85) +
   scale_colour_manual(
-    values = c("A: theta_s = 0.5 (fixed)" = GREY30, "B: theta_s Bayes (eta0=100, slow)" = OI_ORANGE),
+    values = c("A: theta_s = 0.5 (fixed)" = GREY30, "B: theta_s Bayes (eta0=1, fast)" = OI_ORANGE),
     name   = "Model"
   ) +
   scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
@@ -166,7 +166,7 @@ p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
   labs(
     x     = "Trial",
     y     = "w  [P(uncontrollable | data)]",
-    title = "Adaptive w per subject (eta0_arm = 1, eta0_s_B = 100, L0 = 0)",
+    title = "Adaptive w per subject (eta0_arm = 1, eta0_s_B = 1, L0 = 0)",
     caption = paste0("Panel background: blue = understood = felt (N=13), ",
                      "orange = understood != felt (N=4). Dashed = 0.5.")
   ) +
