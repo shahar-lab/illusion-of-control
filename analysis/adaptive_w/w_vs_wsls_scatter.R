@@ -139,10 +139,9 @@ p <- ggplot(plot_df, aes(x = wsls_effect, y = mean_w_B)) +
            hjust = 1.05, vjust = 1.4,
            size = 3.5, colour = GREY40) +
   scale_x_continuous(breaks = round(x_breaks, 2)) +
-  scale_y_continuous(breaks = round(y_breaks, 2)) +
-  coord_fixed(ratio = 1,
-              xlim = range(plot_df$wsls_effect) + c(-0.02, 0.02),
-              ylim = range(plot_df$mean_w_B)    + c(-0.02, 0.02)) +
+  scale_y_continuous(breaks = round(y_breaks, 3)) +
+  coord_cartesian(xlim = range(plot_df$wsls_effect) + c(-0.05, 0.05),
+                  ylim = range(plot_df$mean_w_B)    + c(-0.05, 0.05)) +
   labs(x = "WSLS effect size  [p(stay|reward) - p(stay|no reward)]",
        y = "Mean w  [P(uncontrollable | data), Model B]") +
   theme_minimal(base_size = 13) +
