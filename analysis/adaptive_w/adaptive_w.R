@@ -22,8 +22,7 @@ OI_BLUE   <- "#0072B2"
 OI_ORANGE <- "#E69F00"
 
 ETA0      <- 1     # prior pseudo-count per arm; learning rate on first observation = 1/(ETA0+1)
-ETA0_S_A  <- 100   # prior pseudo-count for theta_s, Model A (near-constant, slow-adapting)
-ETA0_S_B  <- 1     # prior pseudo-count for theta_s, Model B (fast-adapting, cumulative-like)
+ETA0_S_B  <- 100   # prior pseudo-count for theta_s, Model B (slow-adapting Bayesian estimate)
 L0        <- 0     # prior log-odds: 0 = equal prior on controllable vs uncontrollable
 
 #### LOAD DATA ####
@@ -58,16 +57,13 @@ trials <- df_raw |>
 
 #### COMPUTE W TRAJECTORIES ####
 # One global "s"; three arms for "a".
-# Both theta_s (uncontrollable model) and theta_sa (controllable model, per arm) are
-# tracked with the *same* incremental Bayesian running-mean update,
-#   theta <- theta + (1/n) * (r - theta),
-# starting from a prior mean of 0.5 with n initialised to a pseudo-count eta0
-# (learning rate on the first observation = 1/(eta0+1)). The two models differ only
-# in the size of theta_s's pseudo-count:
-#   Model A: eta0_s = 100 (theta_s stays close to the prior 0.5, slow-adapting)
-#   Model B: eta0_s = 1   (theta_s adapts quickly, ~ cumulative win rate)
-# theta_s updates every trial regardless of which arm was chosen, since there is
-# only one global stimulus.
+# The controllable model tracks a separate theta_sa per arm via an incremental
+# Bayesian running-mean update with pseudo-count eta0 (one per arm).
+# The two models differ in how theta_s (the uncontrollable model's prediction) is defined:
+#   Model A: theta_s = 0.5 (fixed constant; true win rate, never updated)
+#   Model B: theta_s tracked via the same incremental Bayesian update, one global
+#            pseudo-count eta0_s=100 (slow-adapting; updates every trial since there
+#            is only one global stimulus).
 #
 # Log-odds L tracks cumulative evidence favouring uncontrollable over controllable:
 #   delta_L = r * log(theta_s / theta_a) + (1-r) * log((1-theta_s) / (1-theta_a))
@@ -78,9 +74,7 @@ compute_w <- function(df_pid) {
   theta_sa <- setNames(rep(0.5, 3), arms)   # controllable model per-arm estimates
   n_a      <- setNames(rep(ETA0, 3), arms)  # observation counts (start at pseudo-count)
 
-  theta_s_A <- 0.5
   theta_s_B <- 0.5
-  n_s_A     <- ETA0_S_A
   n_s_B     <- ETA0_S_B
 
   L_A <- L0
@@ -99,11 +93,11 @@ compute_w <- function(df_pid) {
 
     # Clip to avoid log(0)
     t_at  <- pmax(eps, pmin(1 - eps, theta_at))
-    t_s_A <- pmax(eps, pmin(1 - eps, theta_s_A))
     t_s_B <- pmax(eps, pmin(1 - eps, theta_s_B))
 
     # Log-odds update: positive = evidence for uncontrollable
-    dL_A <- r * log(t_s_A / t_at) + (1 - r) * log((1 - t_s_A) / (1 - t_at))
+    # Model A: theta_s fixed at 0.5, so log(0.5/t_at) simplifies but kept in general form
+    dL_A <- r * log(0.5 / t_at) + (1 - r) * log(0.5 / (1 - t_at))
     dL_B <- r * log(t_s_B / t_at) + (1 - r) * log((1 - t_s_B) / (1 - t_at))
 
     L_A <- L_A + dL_A
@@ -116,9 +110,7 @@ compute_w <- function(df_pid) {
     n_a[[a]]      <- n_a[[a]] + 1
     theta_sa[[a]] <- theta_sa[[a]] + (1 / n_a[[a]]) * (r - theta_sa[[a]])
 
-    # Update uncontrollable model estimates (decaying learning rate, every trial)
-    n_s_A     <- n_s_A + 1
-    theta_s_A <- theta_s_A + (1 / n_s_A) * (r - theta_s_A)
+    # Update uncontrollable model estimate for Model B (every trial, one global s)
     n_s_B     <- n_s_B + 1
     theta_s_B <- theta_s_B + (1 / n_s_B) * (r - theta_s_B)
   }
@@ -143,7 +135,7 @@ w_long <- w_results |>
   pivot_longer(c(w_A, w_B), names_to = "model", values_to = "w") |>
   mutate(model = factor(model,
     levels = c("w_A", "w_B"),
-    labels = c("A: theta_s slow (eta0=100)", "B: theta_s fast (eta0=1)")
+    labels = c("A: theta_s = 0.5 (fixed)", "B: theta_s Bayes (eta0=100, slow)")
   ))
 
 # One row per subject with the panel background fill encoding group membership
@@ -164,7 +156,7 @@ p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
   geom_hline(yintercept = 0.5, colour = GREY65, linetype = "dashed", linewidth = 0.4) +
   geom_line(linewidth = 0.55, alpha = 0.85) +
   scale_colour_manual(
-    values = c("A: theta_s slow (eta0=100)" = GREY30, "B: theta_s fast (eta0=1)" = OI_ORANGE),
+    values = c("A: theta_s = 0.5 (fixed)" = GREY30, "B: theta_s Bayes (eta0=100, slow)" = OI_ORANGE),
     name   = "Model"
   ) +
   scale_y_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
@@ -174,7 +166,7 @@ p <- ggplot(w_long, aes(x = trial_seq, y = w, colour = model, group = model)) +
   labs(
     x     = "Trial",
     y     = "w  [P(uncontrollable | data)]",
-    title = "Adaptive w per subject (eta0_arm = 1, L0 = 0)",
+    title = "Adaptive w per subject (eta0_arm = 1, eta0_s_B = 100, L0 = 0)",
     caption = paste0("Panel background: blue = understood = felt (N=13), ",
                      "orange = understood != felt (N=4). Dashed = 0.5.")
   ) +
