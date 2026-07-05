@@ -1,5 +1,4 @@
 import glob
-import json
 import re
 from pathlib import Path
 
@@ -10,8 +9,8 @@ import arviz as az
 
 REPO       = Path(__file__).resolve().parents[2]
 DATA_DIR   = REPO / "data" / "ioc-all-fixed-pilot" / "task"
-MODEL_FILE = REPO / "models" / "abdr_3arm" / "abdr_3arm.stan"
-OUT_DIR    = REPO / "analysis" / "param_estimation" / "bayesian_draws_abdr"
+MODEL_FILE = REPO / "models" / "ab_3arm" / "ab_3arm.stan"
+OUT_DIR    = REPO / "analysis" / "param_estimation" / "bayesian_draws_ab"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 KEY_TO_CARD = {"arrowleft": 1, "arrowup": 2, "arrowright": 3}
@@ -54,13 +53,11 @@ df["subject_trial"] = df["participant"].map(pid_to_idx)
 df["first_trial"] = (
     df.groupby("participant").cumcount() == 0
 ).astype(int)
-df["first_trial_in_block"] = (
-    df.groupby(["participant", "block_number"]).cumcount() == 0
-).astype(int)
 
 Nsubjects = len(participants)
+Ndata = len(df)
 
-print("Total trials:", len(df))
+print("Total trials:", Ndata)
 print("Subjects:    ", Nsubjects)
 
 participant_map = pd.DataFrame({
@@ -73,17 +70,13 @@ participant_map = pd.DataFrame({
 participant_map.to_csv(OUT_DIR / "participant_map.csv", index=False)
 
 stan_data = {
-    "Ndata": int(len(df)),
-    "Nsubjects": int(Nsubjects),
+    "Ndata":        int(Ndata),
+    "Nsubjects":    int(Nsubjects),
     "subject_trial": df["subject_trial"].tolist(),
-    "choice": df["choice"].tolist(),
-    "reward": df["reward"].tolist(),
-    "first_trial": df["first_trial"].tolist(),
-    "first_trial_in_block": df["first_trial_in_block"].tolist(),
+    "choice":       df["choice"].tolist(),
+    "reward":       df["reward"].tolist(),
+    "first_trial":  df["first_trial"].tolist(),
 }
-
-with open(OUT_DIR / "stan_data.json", "w") as fh:
-    json.dump(stan_data, fh)
 
 #### FIT MODEL ####
 model_code = MODEL_FILE.read_text()
@@ -92,14 +85,12 @@ posterior = stan.build(model_code, data=stan_data, random_seed=1)
 fit = posterior.sample(num_chains=4, num_samples=1000, num_warmup=1000)
 
 idata = az.from_pystan(posterior=fit)
-idata.to_netcdf(str(REPO / "analysis" / "param_estimation" / "draws_abdr.nc"))
+idata.to_netcdf(str(REPO / "analysis" / "param_estimation" / "draws_ab.nc"))
 
 #### SAVE GROUP DRAWS ####
 draws_group = pd.DataFrame({
     "alpha_pop": fit["alpha_pop"].reshape(-1),
     "beta_pop":  fit["beta_pop"].reshape(-1),
-    "delta_pop": fit["delta_pop"].reshape(-1),
-    "rho_pop":   fit["rho_pop"].reshape(-1),
 })
 draws_group.to_csv(OUT_DIR / "posterior_draws_group.csv", index=False)
 
@@ -107,22 +98,20 @@ draws_group.to_csv(OUT_DIR / "posterior_draws_group.csv", index=False)
 sbj_param_map = {
     "alpha": fit["alpha_sbj"],
     "beta":  fit["beta_sbj"],
-    "delta": fit["delta_sbj"],
-    "rho":   fit["rho_sbj"],
 }
 
 rows = []
 for pname, arr in sbj_param_map.items():
     for s in range(Nsubjects):
-        draws_s = arr[s, :]
-        med = float(np.median(draws_s))
+        draws_s = arr[s, :].reshape(-1)
+        med  = float(np.median(draws_s))
         lo90 = float(np.quantile(draws_s, 0.05))
         hi90 = float(np.quantile(draws_s, 0.95))
         pid = participants[s]
         rows.append({
             "participant": pid,
             "understood_eq_felt": (pid not in MISUNDERSTOOD) and (pid not in FELT_DIFFERENT),
-            "param": f"{pname}_abdr",
+            "param": f"{pname}_ab",
             "median": med,
             "lo90": lo90,
             "hi90": hi90,
@@ -131,7 +120,19 @@ for pname, arr in sbj_param_map.items():
 draws_subject = pd.DataFrame(rows)
 draws_subject.to_csv(OUT_DIR / "posterior_draws_subject.csv", index=False)
 
-print("Saved group draws   ->", OUT_DIR / "posterior_draws_group.csv")
-print("Saved subject draws ->", OUT_DIR / "posterior_draws_subject.csv")
+#### SAVE TRIAL-LEVEL Q MEDIANS ####
+# fit["Q_trial"] shape: (num_chains, num_samples, Ndata, 3)
+Q_draws = fit["Q_trial"].reshape(-1, Ndata, 3)   # (total_samples, Ndata, 3)
+Q_median = np.median(Q_draws, axis=0)             # (Ndata, 3)
 
-print(az.summary(idata, var_names=["alpha_pop", "beta_pop", "delta_pop", "rho_pop"]))
+q_trial_df = df[["participant", "block_number", "trial_number", "choice", "reward"]].copy()
+q_trial_df["Q1"] = Q_median[:, 0]
+q_trial_df["Q2"] = Q_median[:, 1]
+q_trial_df["Q3"] = Q_median[:, 2]
+q_trial_df.to_csv(OUT_DIR / "q_trial_median.csv", index=False)
+
+print("Saved group draws    ->", OUT_DIR / "posterior_draws_group.csv")
+print("Saved subject draws  ->", OUT_DIR / "posterior_draws_subject.csv")
+print("Saved Q trial median ->", OUT_DIR / "q_trial_median.csv")
+
+print(az.summary(idata, var_names=["alpha_pop", "beta_pop"]))

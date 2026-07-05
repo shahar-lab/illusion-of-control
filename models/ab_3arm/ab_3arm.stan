@@ -66,4 +66,16 @@ model {
 generated quantities {
   real alpha_pop = inv_logit(mu_alpha);
   real beta_pop  = mu_beta;
+
+  // Q values at each trial (before the choice on that trial)
+  array[Ndata, 3] real Q_trial;
+  {
+    vector[3] Q = rep_vector(0.5, 3);
+    for (t in 1:Ndata) {
+      int s = subject_trial[t];
+      if (first_trial[t] == 1) Q = rep_vector(0.5, 3);
+      for (a in 1:3) Q_trial[t, a] = Q[a];
+      Q[choice[t]] += alpha_sbj[s] * (reward[t] - Q[choice[t]]);
+    }
+  }
 }
