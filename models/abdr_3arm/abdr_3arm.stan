@@ -95,4 +95,27 @@ generated quantities {
   real beta_pop  = mu_beta;
   real delta_pop = inv_logit(mu_delta);
   real rho_pop   = mu_rho;
+
+  // Q and E values at each trial (state used for that trial's decision)
+  array[Ndata, 3] real Q_trial;
+  array[Ndata, 3] real E_trial;
+  {
+    vector[3] Q = rep_vector(0.5, 3);
+    vector[3] E = rep_vector(0.0, 3);
+    for (t in 1:Ndata) {
+      int s = subject_trial[t];
+      if (first_trial[t] == 1) Q = rep_vector(0.5, 3);
+      if (first_trial_in_block[t] == 1) E = rep_vector(0.0, 3);
+
+      E *= delta_sbj[s];
+
+      for (a in 1:3) {
+        Q_trial[t, a] = Q[a];
+        E_trial[t, a] = E[a];
+      }
+
+      Q[choice[t]] += alpha_sbj[s] * (reward[t] - Q[choice[t]]);
+      E[choice[t]] += rho_sbj[s];
+    }
+  }
 }
