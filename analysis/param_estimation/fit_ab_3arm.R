@@ -88,8 +88,8 @@ draws <- rstan::extract(fit)
 
 #### SAVE GROUP DRAWS ####
 draws_group <- tibble(
-  alpha_pop = draws$alpha_pop,
-  beta_pop  = draws$beta_pop
+  alpha_pop = as.numeric(draws$alpha_pop),
+  beta_pop  = as.numeric(draws$beta_pop)
 )
 write_csv(draws_group, file.path(DRAWS_DIR, "posterior_draws_group.csv"))
 
