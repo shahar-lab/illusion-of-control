@@ -45,7 +45,7 @@ transformed parameters {
   real PE_rl;
   real PE_per;
   
-  vector[Narms] logit_value; 
+  vector[Narms] logits; 
   vector[Ndata] log_lik;
   vector[Narms] Q_cards;
   vector[Narms] E_cards;
@@ -63,9 +63,9 @@ transformed parameters {
       E_cards = rep_vector(0.0, Narms);
     }
     
-    logit_value = (beta_rl_sbj[subject] * Q_cards) + (beta_per_sbj[subject] * E_cards);
+    logits = (beta_rl_sbj[subject] * Q_cards) + (beta_per_sbj[subject] * E_cards);
     
-    log_lik[t] = categorical_logit_lpmf(ch_card[t] | logit_value);
+    log_lik[t] = categorical_logit_lpmf(ch_card[t] | logits);
     
     PE_rl = reward[t] - Q_cards[ch_card[t]];
     PE_per = 1.0 - E_cards[ch_card[t]];
