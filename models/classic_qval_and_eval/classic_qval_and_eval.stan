@@ -6,7 +6,6 @@ data {
   array[Ndata] int<lower=1, upper=Nsubjects> subject_trial;
   array[Ndata] int<lower=1, upper=Narms> ch_card;
   array[Ndata] int<lower=0, upper=1> reward;
-  array[Ndata] int<lower=0, upper=1> first_trial_in_block;
 }
 
 parameters {
@@ -36,10 +35,10 @@ transformed parameters {
   for (subject in 1:Nsubjects) {
     alpha_rl_sbj[subject] = inv_logit(mu_alpha_rl + sigma_alpha_rl * alpha_rl_raw[subject]);
     alpha_per_sbj[subject] = inv_logit(mu_alpha_per + sigma_alpha_per * alpha_per_raw[subject]);
+    beta_per_sbj[subject] = mu_beta_per + sigma_beta_per * beta_per_raw[subject];
     
     // log-normal distribution
     beta_rl_sbj[subject] = exp(mu_beta_rl + sigma_beta_rl * beta_rl_raw[subject]);
-    beta_per_sbj[subject] = exp(mu_beta_per + sigma_beta_per * beta_per_raw[subject]);
   }
   
   real PE_rl;
@@ -56,10 +55,6 @@ transformed parameters {
     // Reset initial Q values
     if (t == 1 || subject != subject_trial[t - 1]) {
       Q_cards = rep_vector(0.5, Narms);
-    }
-    
-    // Reset E values at start of each block
-    if (first_trial_in_block[t] == 1) {
       E_cards = rep_vector(0.0, Narms);
     }
     
