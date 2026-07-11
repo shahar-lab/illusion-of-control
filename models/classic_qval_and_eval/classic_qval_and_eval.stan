@@ -5,7 +5,7 @@ data {
   
   array[Ndata] int<lower=1, upper=Nsubjects> subject_trial;
   array[Ndata] int<lower=1, upper=Narms> ch_card;
-  array[Ndata] int<lower=0> reward;
+  array[Ndata] int<lower=0, upper=1> reward;
   array[Ndata] int<lower=0, upper=1> first_trial_in_block;
 }
 
@@ -29,9 +29,9 @@ parameters {
 transformed parameters {
   vector<lower=0, upper=1>[Nsubjects] alpha_rl_sbj;
   vector<lower=0, upper=1>[Nsubjects] alpha_per_sbj;
+  vector[Nsubjects] beta_per_sbj;
   // Bounded at 0!
   vector<lower=0>[Nsubjects] beta_rl_sbj; 
-  vector<lower=0>[Nsubjects] beta_per_sbj;
   
   for (subject in 1:Nsubjects) {
     alpha_rl_sbj[subject] = inv_logit(mu_alpha_rl + sigma_alpha_rl * alpha_rl_raw[subject]);
@@ -41,11 +41,6 @@ transformed parameters {
     beta_rl_sbj[subject] = exp(mu_beta_rl + sigma_beta_rl * beta_rl_raw[subject]);
     beta_per_sbj[subject] = exp(mu_beta_per + sigma_beta_per * beta_per_raw[subject]);
   }
-  
-  real alpha_rl_t;
-  real alpha_per_t;
-  real beta_rl_t;
-  real beta_per_t;
   
   real PE_rl;
   real PE_per;
@@ -57,13 +52,10 @@ transformed parameters {
   vector[Narms] E_cards;
 
   for (t in 1:Ndata) {
-    alpha_rl_t = alpha_rl_sbj[subject_trial[t]];
-    alpha_per_t = alpha_per_sbj[subject_trial[t]];
-    beta_rl_t = beta_rl_sbj[subject_trial[t]];
-    beta_per_t = beta_per_sbj[subject_trial[t]];
+    int subject = subject_trial[t];
 
     // Reset initial Q values
-    if (t == 1 || subject_trial[t] != subject_trial[t - 1]) {
+    if (t == 1 || subject != subject_trial[t - 1]) {
       Q_cards = rep_vector(0.5, Narms);
     }
     
@@ -72,14 +64,14 @@ transformed parameters {
       E_cards = rep_vector(0.0, Narms);
     }
     
-    logit_value = (beta_rl_t * Q_cards) + (beta_per_t * E_cards);
+    logit_value = (beta_rl_sbj[subject] * Q_cards) + (beta_per_sbj[subject] * E_cards);
     logit_value_trial[t] = logit_value;
     
     PE_rl = reward[t] - Q_cards[ch_card[t]];
     PE_per = 1.0 - E_cards[ch_card[t]];
     
-    Q_cards[ch_card[t]] += alpha_rl_t * PE_rl;
-    E_cards[ch_card[t]] += alpha_per_t * PE_per;
+    Q_cards[ch_card[t]] += alpha_rl_sbj[subject] * PE_rl;
+    E_cards[ch_card[t]] += alpha_per_sbj[subject] * PE_per;
   }
 }
 
