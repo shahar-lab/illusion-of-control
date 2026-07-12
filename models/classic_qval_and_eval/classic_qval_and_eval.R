@@ -40,7 +40,7 @@ sim.block = function(subject, parameters, cfg){
     PE_per   = 1 - E_cards[ch_card]
     
     #save trial's data
-    dfnew = data.frame(
+    dfnew = tibble(
       subject              = subject,
       block                = block,
       trial                = trial,
