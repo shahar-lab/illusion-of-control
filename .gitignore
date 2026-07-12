@@ -40,6 +40,12 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
+# R CMD BATCH log files
+*.Rout
+
+# rstan compiled model cache (auto_write = TRUE)
+models/**/*.rds
+
 # Local working directories (Python venvs, compiled model artifacts)
 analysis/param_estimation/scratch/
 analysis/param_estimation/bayesian_draws_abdr/stan_data.json

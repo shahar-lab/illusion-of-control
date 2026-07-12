@@ -1,14 +1,22 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
-          }
-        ]
-      }
+  "permissions": {
+    "allow": [
+      "Edit(/.claude/skills/shaharlab_project_folder_scaffolding/**)",
+      "Edit(/.claude/skills/shaharlab-bayesian-regression/**)",
+      "Bash(mkdir -p \"d:\\\\OneDrive - Tel-Aviv University\\\\github\\\\bayesian_skills\\\\analysis\\\\anxiety_testscore_association\\\\code\" \"d:\\\\OneDrive - Tel-Aviv University\\\\github\\\\bayesian_skills\\\\analysis\\\\anxiety_testscore_association\\\\artifacts\" \"d:\\\\OneDrive - Tel-Aviv University\\\\github\\\\bayesian_skills\\\\analysis\\\\anxiety_testscore_association\\\\output\")",
+      "Edit(/.claude/skills/shaharlab_plotting/**)",
+      "Bash(mkdir -p \"d:\\\\OneDrive - Tel-Aviv University\\\\github\\\\bayesian_skills\\\\analysis\\\\anxiety_exam_bayesian_regression\\\\code\" \"d:\\\\OneDrive - Tel-Aviv University\\\\github\\\\bayesian_skills\\\\analysis\\\\anxiety_exam_bayesian_regression\\\\artifacts\" \"d:\\\\OneDrive - Tel-Aviv University\\\\github\\\\bayesian_skills\\\\analysis\\\\anxiety_exam_bayesian_regression\\\\output\")",
+      "Bash(Get-ChildItem -Path \".\\\\.claude\\\\skills\\\\shaharlab_plotting\\\\\" -Recurse | Select-Object FullName)",
+      "Bash(ls -la d:/.claude/agents 2>/dev/null || echo \"Directory does not exist\")",
+      "Read(//d/.claude/**)",
+      "Bash(cd \"d:/OneDrive - Tel-Aviv University/github/bayesian_skills/.claude/agents/\" && rm lab_architect.md lab_code_reviewer.md shahar_data_scientist.md)"
+    ],
+    "additionalDirectories": [
+      "d:\\OneDrive - Tel-Aviv University\\github\\bayesian_skills\\analysis\\anxiety_testscore_association",
+      "d:\\OneDrive - Tel-Aviv University\\github\\bayesian_skills\\analysis\\anxiety_exam_bayesian_regression",
+      "D:\\OneDrive - Tel-Aviv University\\github\\bayesian_skills\\.claude\\skills\\shaharlab_plotting\\plot-posterior",
+      "D:\\OneDrive - Tel-Aviv University\\github\\bayesian_skills\\.claude\\skills\\shaharlab_plotting\\references\\plot-posterior",
+      "d:\\OneDrive - Tel-Aviv University\\github\\bayesian_skills\\.claude\\agents"
     ]
   }
 }

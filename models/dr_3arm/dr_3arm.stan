@@ -73,4 +73,17 @@ model {
 generated quantities {
   real delta_pop = inv_logit(mu_delta);
   real rho_pop   = mu_rho;
+
+  // E values at each trial (after decay, before the choice increment on that trial)
+  array[Ndata, 3] real E_trial;
+  {
+    vector[3] E = rep_vector(0.0, 3);
+    for (t in 1:Ndata) {
+      int s = subject_trial[t];
+      if (first_trial_in_block[t] == 1) E = rep_vector(0.0, 3);
+      E *= delta_sbj[s];
+      for (a in 1:3) E_trial[t, a] = E[a];
+      E[choice[t]] += rho_sbj[s];
+    }
+  }
 }
