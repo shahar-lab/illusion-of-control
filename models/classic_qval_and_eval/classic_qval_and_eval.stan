@@ -74,9 +74,9 @@ model {
   mu_alpha_rl ~ normal(0, 3);
   mu_alpha_per ~ normal(0, 3);
   
-  // Beta priors tightened for the log scale (exp transformation)
+  mu_beta_per ~ normal(0, 3);
+  // Beta prior tightened for the log scale (exp transformation)
   mu_beta_rl ~ normal(0, 1.5);
-  mu_beta_per ~ normal(0, 1.5);
   
   sigma_alpha_rl ~ normal(0, 2);
   sigma_alpha_per ~ normal(0, 2);
