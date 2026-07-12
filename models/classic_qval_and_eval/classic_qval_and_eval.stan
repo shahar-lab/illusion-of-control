@@ -90,3 +90,43 @@ model {
   
   target += sum(log_lik);
 }
+
+generated quantities {
+  real alpha_rl_pop = inv_logit(mu_alpha_rl);
+  real alpha_per_pop = inv_logit(mu_alpha_per);
+  real beta_per_pop = mu_beta_per;
+  
+  real beta_rl_pop = exp(mu_beta_rl);
+
+  array[Ndata, Narms] real Q_trial;
+  array[Ndata, Narms] real E_trial;
+
+  {
+    vector[Narms] Q_cards;
+    vector[Narms] E_cards;
+    real PE_rl;
+    real PE_per;
+
+    for (t in 1:Ndata) {
+      int subject = subject_trial[t];
+      
+      if (t == 1 || subject != subject_trial[t - 1]) {
+        Q_cards = rep_vector(0.5, Narms);
+        E_cards = rep_vector(0.0, Narms);
+      }
+            
+      // Save the current values BEFORE the update
+      for (a in 1:Narms) {
+        Q_trial[t, a] = Q_cards[a];
+        E_trial[t, a] = E_cards[a];
+      }
+      
+      PE_rl = reward[t] - Q_cards[ch_card[t]];
+      PE_per = 1.0 - E_cards[ch_card[t]];
+      
+      // Update local variables for the next trial
+      Q_cards[ch_card[t]] += alpha_rl_sbj[subject] * PE_rl;
+      E_cards[ch_card[t]] += alpha_per_sbj[subject] * PE_per;
+    }
+  }
+}
