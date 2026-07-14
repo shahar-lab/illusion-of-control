@@ -50,3 +50,11 @@ models/**/*.rds
 analysis/param_estimation/scratch/
 analysis/param_estimation/bayesian_draws_abdr/stan_data.json
 analysis/param_estimation/draws_abdr.nc
+
+# cmdstanr compiled model binaries
+models/classic_qval_and_eval/classic_qval_and_eval
+models/eval_only/eval_only
+
+# fit.rds exceeds GitHub's 100MB push limit at full-scale iteration counts
+analysis/classic_qval_and_eval_param_recovery/artifacts/fit.rds
+analysis/eval_only_param_recovery/artifacts/fit.rds

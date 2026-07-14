@@ -15,7 +15,7 @@ sim.block = function(subject, parameters, cfg){
   expvalues  = cfg$expvalues
   options    = 1:Narms
 
-  df         = data.frame()
+  df_list    = vector("list", Ntrials)
 
   #initialize values at 0 for symmetric -1/1 bounds
   Q_cards = rep(0.5, Narms)
@@ -40,7 +40,7 @@ sim.block = function(subject, parameters, cfg){
     PE_per   = 1 - E_cards[ch_card]
     
     #save trial's data
-    dfnew = data.frame(
+    dfnew = tibble(
       subject              = subject,
       block                = block,
       trial                = trial,
@@ -57,7 +57,7 @@ sim.block = function(subject, parameters, cfg){
       E_ch                 = E_cards[ch_card],
       prob_ch              = prob_cards[ch_card]
     )
-    df = rbind(df, dfnew)
+    df_list[[trial]] = dfnew
     
     #updating Q-values 
     Q_cards[ch_card] = Q_cards[ch_card] + alpha_rl * PE_rl
@@ -66,5 +66,5 @@ sim.block = function(subject, parameters, cfg){
     E_cards[ch_card] = E_cards[ch_card] + alpha_per * PE_per
   }     
   
-  return (df)
+  return (bind_rows(df_list))
 }
