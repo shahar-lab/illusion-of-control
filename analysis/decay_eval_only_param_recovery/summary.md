@@ -72,3 +72,29 @@ subjects / 2000+3000 iterations). This suggests the frozen-unchosen-arm paramete
 decay back toward baseline provides much more informative trial-to-trial variation for
 pinning down the perseveration learning rate. Worth confirming at a larger scale (matching
 the 100-subject / 2000+3000-iteration runs used elsewhere) before drawing a firm conclusion.
+
+### Second run: scaled to 100 subjects, 2000 warmup + 3000 sampling iterations
+Matches the scale used for `eval_only_param_recovery`'s full runs, to directly compare
+`alpha_per` recovery between the frozen (`eval_only`) and decayed (`decay_eval_only`)
+unchosen-arm parameterizations. Runtime: ~28 minutes end-to-end (MCMC sampling alone:
+~26.6 minutes) — notably faster than other 100-subject/2000+3000 runs in this repo, likely
+because this model has only 2 free parameters and 3 arms (vs. 4 parameters / up to 8 arms
+elsewhere).
+
+- 0 divergent transitions, 0 max-treedepth hits across all 4 chains.
+- Full convergence: 0 of 4 group-level parameters had Rhat > 1.01, 0 had ESS_bulk < 400.
+- Parameter recovery (Pearson r, true vs. posterior median):
+
+  | parameter | pearson_r |
+  |-----------|-----------|
+  | alpha_per | 0.571     |
+  | beta_per  | 0.959     |
+
+Confirms the hypothesis from the first run, directionally: `alpha_per` recovery (0.571) is
+still clearly better here than in *any* `eval_only` run at the same 100-subject /
+2000+3000-iteration scale (r range -0.03 to 0.32 across all of them, regardless of arm
+count or `beta_per`'s prior width). `alpha_per`'s recovery did drop from the smaller-scale
+run (0.806 -> 0.571 here), so this shouldn't be over-read as guaranteed to hold at every
+scale/prior setting, but the qualitative conclusion stands: decaying unchosen arms back
+toward baseline gives the perseveration learning rate substantially more identifiability
+than freezing them.
