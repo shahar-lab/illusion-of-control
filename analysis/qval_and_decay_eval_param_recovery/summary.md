@@ -76,3 +76,31 @@ full Q-value + perseveration model too, not just the perseveration-only ablation
 this whole line of models, the decaying perseveration-trace parameterization consistently
 gives `alpha_per` (and, by extension, the model as a whole) better identifiability than
 letting unchosen arms sit frozen.
+
+### Second run: widened priors, Nsubjects 100->200, beta_per sigma 1.2->0.75
+Pushed directly by the PI (with Nitzan), referring to this model as "RL+H." Changes:
+`Nsubjects` 100->200; generating `sigma` for `alpha_rl`/`alpha_per` 0.75->0.85 (wider true
+spread); generating `sigma` for `beta_per` 1.2->0.75 (narrower); and in
+`qval_and_decay_eval.stan`, `mu_beta_rl`'s prior widened `normal(0,1.5)`->`normal(0,3)`,
+and all four `sigma_*` priors widened `normal(0,2)`->`normal(0,3)`. No structural changes.
+`Ntrials`/`Narms`/`iter_warmup`/`iter_sampling` unchanged (200/3/2000/3000). Runtime:
+~2h40m end-to-end (MCMC sampling alone: ~2h29m — Ndata doubled to 40,000 trials with
+Nsubjects at 200, so this took considerably longer than the first run).
+
+- 0 divergent transitions, 0 max-treedepth hits across all 4 chains.
+- Full convergence: 0 of 8 group-level parameters had Rhat > 1.01, 0 had ESS_bulk < 400.
+- Parameter recovery (Pearson r, true vs. posterior median):
+
+  | parameter | pearson_r |
+  |-----------|-----------|
+  | alpha_rl  | 0.567     |
+  | alpha_per | 0.515     |
+  | beta_rl   | 0.964     |
+  | beta_per  | 0.918     |
+
+Recovery held up well despite the wider priors and (going by the `eval_only` precedent)
+the potentially-riskier narrower `beta_per` sigma: all four parameters recovered about as
+strongly as in the first run, with 0 divergences and full convergence at double the
+subject count. `alpha_per` (0.515) again lands well above `classic_qval_and_eval`'s best
+comparable result (0.321), reinforcing that the decaying-perseveration parameterization's
+identifiability advantage is not just a small-sample artifact of the first run.
