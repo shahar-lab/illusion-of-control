@@ -1,0 +1,5 @@
+parameter,pearson_r
+alpha_rl,-0.009
+alpha_per,0.007
+beta_rl,0.325
+beta_per,0.158
