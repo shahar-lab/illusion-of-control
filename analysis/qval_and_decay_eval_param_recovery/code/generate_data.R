@@ -1,6 +1,6 @@
 #### SIMULATE BEHAVIORAL DATA ####
 
-Nsubjects <- 100
+Nsubjects <- 200
 Narms     <- 3
 Ntrials   <- 200
 
@@ -16,10 +16,10 @@ cfg <- list(
 # beta_rl:             log-normal        → bounded > 0
 # beta_per:            normal            → unbounded
 population_params_list <- list(
-  alpha_rl  = list(mu = 0,     sigma = 0.75, link = "inv_logit"),
-  alpha_per = list(mu = 0,     sigma = 0.75, link = "inv_logit"),
+  alpha_rl  = list(mu = 0,     sigma = 0.85, link = "inv_logit"),
+  alpha_per = list(mu = 0,     sigma = 0.85, link = "inv_logit"),
   beta_rl   = list(mu = -0.25, sigma = 0.75, link = "exp"),
-  beta_per  = list(mu = 0,     sigma = 1.2,  link = "identity")
+  beta_per  = list(mu = 0,     sigma = 0.75,  link = "identity")
 )
 population_params <- bind_rows(population_params_list, .id = "param")
 
