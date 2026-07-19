@@ -3,7 +3,7 @@
 Nsubjects <- 20
 Narms     <- 4
 Nraffle   <- 2
-Ntrials   <- 20
+Ntrials   <- 150
 
 # Constant expected value of 0.5 for all arms
 expvalues <- matrix(0.5, nrow = Narms, ncol = Ntrials)
