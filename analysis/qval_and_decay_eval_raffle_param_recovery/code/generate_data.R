@@ -5,15 +5,8 @@ Narms     <- 4
 Nraffle   <- 2
 Ntrials   <- 20
 
-# Gaussian random walk per arm, clamped to [0, 1]
-walk_sd   <- 0.05
-expvalues <- matrix(NA_real_, nrow = Narms, ncol = Ntrials)
-expvalues[, 1] <- runif(Narms, 0, 1)
-
-for (t in 2:Ntrials) {
-  step <- expvalues[, t - 1] + rnorm(Narms, 0, walk_sd)
-  expvalues[, t] <- pmin(pmax(step, 0), 1)
-}
+# Constant expected value of 0.5 for all arms
+expvalues <- matrix(0.5, nrow = Narms, ncol = Ntrials)
 
 cfg <- list(
   Nsubjects = Nsubjects,
