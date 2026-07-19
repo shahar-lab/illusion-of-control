@@ -1,6 +1,6 @@
 #### SIMULATE BEHAVIORAL DATA ####
 
-Nsubjects <- 20
+Nsubjects <- 200
 Narms     <- 3
 Ntrials   <- 150
 
