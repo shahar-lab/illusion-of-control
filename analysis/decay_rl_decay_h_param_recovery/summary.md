@@ -19,9 +19,9 @@ Free parameters:
 | rho_h     | > 0        | log-normal          |
 
 ## Simulation setup
-- Nsubjects = 100, Narms = 4, Ntrials = 150
+- Nsubjects = 200, Narms = 3, Ntrials = 150
 - Flat reward probability schedule: expvalues = 0.5 for all arms and trials
-- Generating population means (on link scale): decay_rl: mu=0, decay_h: mu=0, rho_rl: mu=-0.5, rho_h: mu=-0.5
+- Generating population means (on link scale): decay_rl: mu=0, decay_h: mu=0, rho_rl: mu=0.5, rho_h: mu=0.5 (identity link, unbounded)
 - Generating sigma = 0.75 for all parameters
 
 ## Pipeline (via main.R)
@@ -38,4 +38,30 @@ Free parameters:
 - `output/`: param_distributions.pdf/png, Diagnostics.pdf, param_recovery.pdf/png, population_posteriors.pdf/png, recovery_summary.csv
 
 ## Results
-*(Fill in after first run)*
+
+### Full run (200 subjects, 150 trials, 4 chains x 2000 warmup + 3000 sampling)
+
+**Convergence:** 0 divergent transitions across all 4 chains, 0 max-treedepth hits.
+All group-level Rhat = 1.00, all ESS_bulk/ESS_tail in the thousands (min ~2625).
+0 parameters with Rhat > 1.01, 0 with ESS_bulk < 400 — clean convergence.
+
+**Recovery (Pearson r, true vs. recovered posterior medians):**
+
+| parameter | pearson_r |
+|---|---|
+| decay_rl  | 0.488 |
+| decay_h   | 0.522 |
+| rho_rl    | 0.875 |
+| rho_h     | 0.935 |
+
+The increment-scale parameters (`rho_rl`, `rho_h`) recover well. The decay-rate
+parameters (`decay_rl`, `decay_h`) recover more weakly — consistent with the
+cross-model pattern seen throughout this project's other decaying-trace models:
+a decay rate mainly shapes how far back the trace's memory extends, which is a
+subtler signal in the choice data than the increment/scale parameters, especially
+over a flat (uninformative) 0.5 reward schedule with no true reward-driven
+learning signal to sharpen `decay_rl` specifically.
+
+Note: an earlier attempt at this full run was interrupted mid-sampling by a
+container restart (1 of 4 chains had finished); the run was restarted from a
+fresh data simulation and completed cleanly on the second attempt.
