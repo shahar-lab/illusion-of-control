@@ -1,5 +1,0 @@
-param,mu,sigma,link
-alpha_rl,0,0.85,inv_logit
-alpha_per,0,0.85,inv_logit
-beta_rl,-0.25,0.75,exp
-beta_per,0,0.75,identity

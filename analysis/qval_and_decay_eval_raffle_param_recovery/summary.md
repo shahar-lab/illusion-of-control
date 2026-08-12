@@ -25,9 +25,14 @@ pulled toward 1. Unlike `eval_only`/`decay_eval_only`, `reward` is actually used
 the Q-value term), not just carried through unused.
 
 ## Simulation setup
-- 4-arm bandit, 2 arms raffled per trial; `Nsubjects` / `Narms` / `Nraffle` / `Ntrials` set at the top of `code/generate_data.R`
-- Reward probabilities: 0.50 for all arms (unbiased)
-- True parameters sampled from priors defined in `population_params_list` in `generate_data.R`
+- 4-arm bandit, 2 arms raffled per trial; `Nsubjects = 100`, `Narms = 4`, `Nraffle = 2`, `Ntrials = 150`
+- Reward probabilities: Gaussian random walk per arm (SD = 0.05), clamped to [0, 1]; all arms start from `runif(4, 0, 1)`
+- True parameters sampled from:
+  - `alpha_rl`  ~ inv_logit(Normal(0, 0.85))
+  - `alpha_per` ~ inv_logit(Normal(0, 0.85))
+  - `beta_rl`   ~ exp(Normal(−0.25, 0.75))
+  - `beta_per`  ~ Normal(0, 0.75)
+- Sampling: 4 chains, `iter_warmup = 2000`, `iter_sampling = 3000`
 
 ## Pipeline (via main.R)
 1. `generate_data.R`             — simulate agents, save `cfg.rds` + `df.rds` + `population_params.csv` + `individual_params.csv`
@@ -58,5 +63,20 @@ the Q-value term), not just carried through unused.
 
 ## Results
 
-_Not yet run. Execute `main.R` to populate recovery statistics for the raffle variant
-(4 arms, 2 raffled per trial)._
+Full-scale run (100 subjects, 150 trials, 4 chains × 3000 draws after 2000 warmup).
+Convergence diagnostics in `output/Diagnostics.pdf`.
+
+### Pearson r — true vs. recovered posterior medians
+
+| Parameter  | Pearson r | Quality    |
+|------------|-----------|------------|
+| `alpha_rl` | 0.303     | Poor       |
+| `alpha_per`| 0.439     | Moderate   |
+| `beta_rl`  | 0.899     | Good       |
+| `beta_per` | 0.946     | Excellent  |
+
+### Interpretation
+
+- `beta_rl` and `beta_per` recover well (r > 0.89), as expected for inverse-temperature parameters that strongly constrain the choice distribution.
+- `alpha_rl` (r = 0.30) and `alpha_per` (r = 0.44) are only weakly recovered. This is common for learning-rate parameters in short sequences (150 trials); the two alpha parameters may also trade off against each other. The raffle design (only 2 of 4 arms visible per trial) further reduces the information available per trial to constrain individual rates.
+- Recovery quality is acceptable for group-level inference but should be considered when interpreting individual differences in `alpha_rl` / `alpha_per`.
