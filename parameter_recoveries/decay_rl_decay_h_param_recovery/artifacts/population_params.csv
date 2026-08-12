@@ -1,0 +1,5 @@
+param,mu,sigma,link
+decay_rl,0,0.75,inv_logit
+decay_h,0,0.75,inv_logit
+rho_rl,0.5,0.75,identity
+rho_h,0.5,0.75,identity

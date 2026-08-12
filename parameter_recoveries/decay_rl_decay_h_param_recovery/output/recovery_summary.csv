@@ -1,0 +1,5 @@
+parameter,pearson_r
+decay_rl,0.488
+decay_h,0.522
+rho_rl,0.875
+rho_h,0.935
