@@ -12,9 +12,18 @@ DATA_DIR <- "../../data/ioc-all-fixed-pilot/task"
 OUT_PNG  <- "running_wsls.png"
 WINDOW   <- 30
 
-MISUNDERSTOOD  <- "67dae998d8f2cfb8a8e3bf03"
-FELT_DIFFERENT <- c("677009b08130c3028f6a8a6d", "68598a1d4cebd213b2abb1d9",
-                    "69b7e04340b00585acbb91ac", "6a0092581cd317f1ff1765a2")
+MISUNDERSTOOD <- c(
+  "67dae998d8f2cfb8a8e3bf03",
+  "6a087d170d5521dd2055e045",
+  "6a0ac6bc5fb56e6d7f8e6569"
+)
+FELT_DIFFERENT <- c(
+  "677009b08130c3028f6a8a6d", "68598a1d4cebd213b2abb1d9",
+  "69b7e04340b00585acbb91ac", "6a0092581cd317f1ff1765a2",
+  "5c41f9ce4fe4f800016dfaac", "651d64e4756ee3358eeb981f",
+  "6982544679288685d8a0199f", "69a7048762f2aacbfb3c2f02",
+  "69de2b262f16bdb2c0122847", "6a01c4c8248651c0157c76c5"
+)
 
 LINE_COL  <- "#0072B2"
 ZERO_COL  <- "#888888"

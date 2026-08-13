@@ -6,14 +6,23 @@ library(tidyr)
 library(readr)
 library(ggplot2)
 library(patchwork)
+library(rstanarm)
 
 DATA_DIR  <- "../../data/ioc-all-fixed-pilot/task"
-DRAWS_CSV <- "wsls_draws_n18.csv"
 OUT_PNG   <- "wsls_scatter_posterior.png"
 
-MISUNDERSTOOD  <- "67dae998d8f2cfb8a8e3bf03"
-FELT_DIFFERENT <- c("677009b08130c3028f6a8a6d", "68598a1d4cebd213b2abb1d9",
-                    "69b7e04340b00585acbb91ac", "6a0092581cd317f1ff1765a2")
+MISUNDERSTOOD <- c(
+  "67dae998d8f2cfb8a8e3bf03",
+  "6a087d170d5521dd2055e045",
+  "6a0ac6bc5fb56e6d7f8e6569"
+)
+FELT_DIFFERENT <- c(
+  "677009b08130c3028f6a8a6d", "68598a1d4cebd213b2abb1d9",
+  "69b7e04340b00585acbb91ac", "6a0092581cd317f1ff1765a2",
+  "5c41f9ce4fe4f800016dfaac", "651d64e4756ee3358eeb981f",
+  "6982544679288685d8a0199f", "69a7048762f2aacbfb3c2f02",
+  "69de2b262f16bdb2c0122847", "6a01c4c8248651c0157c76c5"
+)
 OMITTED <- c(MISUNDERSTOOD, FELT_DIFFERENT)
 
 OI_BLUE   <- "#0072B2"
@@ -60,12 +69,25 @@ df_scatter <- gb |>
   ) |>
   filter(!is.na(p_win), !is.na(p_loss))
 
-# ── load WSLS posterior draws ─────────────────────────────────────────────────
-draws     <- read_csv(DRAWS_CSV, show_col_types = FALSE)
-beta_mu   <- draws$beta_mu
-med       <- median(beta_mu)
-pd        <- max(mean(beta_mu > 0), mean(beta_mu < 0)) * 100
-ci90      <- quantile(beta_mu, c(0.05, 0.95))
+# ── fit pooled WSLS model for group β posterior ───────────────────────────────
+df_pool <- gb |>
+  group_by(participant, block_number) |>
+  mutate(
+    stay         = as.integer(choice_key == lag(choice_key)),
+    reward_nback = lag(reward)
+  ) |>
+  ungroup() |>
+  filter(!is.na(stay), !is.na(reward_nback))
+
+fit_pool <- stan_glm(
+  stay ~ reward_nback, data = df_pool, family = binomial(),
+  prior_intercept = normal(0, 2), prior = normal(0, 2),
+  chains = 4, iter = 2000, warmup = 1000, seed = 42, refresh = 0
+)
+beta_mu <- as.vector(as.matrix(fit_pool)[, "reward_nback"])
+med      <- median(beta_mu)
+pd       <- max(mean(beta_mu > 0), mean(beta_mu < 0)) * 100
+ci90     <- quantile(beta_mu, c(0.05, 0.95))
 
 # ── Panel 1: scatter ──────────────────────────────────────────────────────────
 p_scatter <- ggplot(df_scatter, aes(x = p_loss, y = p_win)) +
@@ -73,7 +95,7 @@ p_scatter <- ggplot(df_scatter, aes(x = p_loss, y = p_win)) +
   geom_point(aes(colour = understood_eq_felt), size = 2.5, alpha = 0.85) +
   scale_colour_manual(
     values = c("TRUE" = OI_BLUE, "FALSE" = OI_ORANGE),
-    labels = c("TRUE" = "understood = felt  (n=13)", "FALSE" = "understood != felt  (n=5)"),
+    labels = c("TRUE" = "understood = felt  (n=22)", "FALSE" = "understood != felt  (n=13)"),
     name   = NULL
   ) +
   scale_x_continuous(limits = c(0, 1)) +

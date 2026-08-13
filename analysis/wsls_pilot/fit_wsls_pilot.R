@@ -25,7 +25,9 @@ df_list <- list()
 for (f in all_files) {
   pid <- str_extract(f, "[a-f0-9]{24}")
   if (is.na(pid)) next
-  df_list[[pid]] <- read_csv(f, show_col_types = FALSE) |> mutate(participant = pid)
+  df_list[[pid]] <- read_csv(f, show_col_types = FALSE) |>
+    mutate(across(any_of(c("felt_blue", "felt_green", "felt_red")), as.character)) |>
+    mutate(participant = pid)
 }
 
 df <- bind_rows(df_list)
@@ -47,8 +49,7 @@ df <- df |>
     is_choice_valid       == TRUE,
     is_choice_valid_nback == TRUE,
     !is.na(choice_key_nback),
-    !is.na(reward_nback),
-    choice_key_nback      != unavailable_key
+    !is.na(reward_nback)
   ) |>
   mutate(
     stay_ch      = as.integer(choice_key == choice_key_nback),
