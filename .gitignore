@@ -67,3 +67,4 @@ analysis/eval_only_param_recovery/artifacts/fit.rds
 analysis/qval_and_decay_eval_param_recovery/artifacts/fit.rds
 analysis/qval_and_decay_eval_raffle_param_recovery/artifacts/fit.rds
 analysis/decay_rl_decay_h_param_recovery/artifacts/fit.rds
+analysis/param_estimation/bayesian_draws_classic_qval_and_unchosen_eval_zero/fit_classic_qval_and_unchosen_eval_zero.rds
