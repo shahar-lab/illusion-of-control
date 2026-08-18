@@ -1,7 +1,7 @@
 #### SIMULATE BEHAVIORAL DATA ####
 # reads: nothing · writes: artifacts/cfg.rds, df.rds, population_params.csv, individual_params.csv
 
-Nsubjects <- 100
+Nsubjects <- 20
 Narms     <- 4
 Nraffle   <- 2
 Ntrials   <- 200
