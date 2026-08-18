@@ -2,8 +2,8 @@
 # reads: nothing · writes: artifacts/cfg.rds, df.rds, population_params.csv, individual_params.csv
 
 Nsubjects <- 100
-Narms     <- 8
-Nraffle   <- 4
+Narms     <- 4
+Nraffle   <- 2
 Ntrials   <- 200
 
 expvalues <- matrix(rep(0.5, Narms * Ntrials), nrow = Narms)
