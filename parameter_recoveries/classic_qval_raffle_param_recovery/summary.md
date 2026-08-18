@@ -63,3 +63,29 @@ divergences and effectively converged chains. Recovery correlations are directio
 sane for a 20-subject/500-iteration sanity pass; a full run at production settings
 (`iter_warmup = 2000`, `iter_sampling = 3000`) is recommended before treating recovery
 numbers as conclusive.
+
+### Full run (2000 warmup / 3000 sampling, 4 chains, 100 subjects, 4 arms / 2-arm raffle)
+Production-settings run at 100 subjects (per this lab's full-run convention of
+100-200 subjects) for a more conclusive identifiability check than the 20-subject
+pilot scale allows. `generate_data.R`'s committed default (`Nsubjects = 20`) reflects
+the actual pilot's planned sample size and was only overridden locally to 100 for the
+duration of this run — **the committed `artifacts/` and `output/` files in this folder
+currently reflect this 100-subject run, not a 20-subject one**; rerunning `main.R` as
+committed will regenerate 20-subject versions.
+
+- Runtime: ~22 minutes total (mean chain time 1225s)
+- Divergent transitions: 0 / 20000 total; max treedepth hits: 0
+- Rhat: 1.00 on all four group-level parameters
+- ESS_bulk: 1735-2565, ESS_tail: 3453-5443 — comfortably above the 400 target throughout
+- Pearson r (true vs. recovered): alpha_rl = 0.423, beta_rl = 0.890
+
+**Conclusion:** `beta_rl` (inverse temperature) recovers well (r = 0.89, tight scatter
+around the identity line). `alpha_rl` (learning rate) recovers only moderately (r = 0.42)
+and shows visible shrinkage toward the population mean — recovered values compress into
+a narrow band regardless of the true value. This tracks with the 2-arm raffle: each
+trial reveals less about relative arm values than the original 4-arm raffle design, and
+subjects with low `beta_rl` (near-random choosers, clustered near the origin in the
+beta_rl panel) contribute little information about their own learning rate, since their
+choices barely track Q-value differences. This is a genuine identifiability limitation
+of the narrowed 2-arm raffle, not a convergence or pipeline bug — worth keeping in mind
+when interpreting `alpha_rl` estimates from real pilot data at this raffle size.
