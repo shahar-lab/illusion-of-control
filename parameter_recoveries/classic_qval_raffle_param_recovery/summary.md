@@ -20,13 +20,14 @@ The raffle constraint means `fit_stan.R` must pass an `offered_arms` integer mat
 from `cfg.rds`.
 
 ## Simulation setup
-- Nsubjects = 100, Narms = 8, Nraffle = 4, Ntrials = 200
+- Nsubjects = 20, Narms = 4, Nraffle = 2, Ntrials = 200
 - Reward schedule: uniform 0.5 win probability for all arms and trials
 - alpha_rl drawn from inv_logit(Normal(0, 0.75))
 - beta_rl drawn from exp(Normal(-0.25, 0.75))
+- Nsubjects/Narms/Nraffle set to match the actual pilot (20 subjects, 4 arms, 2-arm raffle)
 
 ## Pipeline (via main.R)
-1. `generate_data.R` — simulate 100 agents and save cfg, df, params
+1. `generate_data.R` — simulate 20 agents and save cfg, df, params
 2. `plot_param_distributions.R` — sanity-check simulated parameter distributions
 3. `fit_stan.R` — fit hierarchical Stan model, save fit, medians, population posteriors
 4. `diagnostics.R` — HMC diagnostics (divergences, Rhat, ESS) → Diagnostics.pdf
@@ -42,9 +43,23 @@ from `cfg.rds`.
 
 ## Results
 
-### (pending first run)
-Run the pipeline via `main.R` and fill in:
-- Runtime
-- Divergent transitions / max Rhat / min ESS_bulk
-- Pearson r for alpha_rl and beta_rl (from recovery_summary.csv)
-- Any notes on identifiability or convergence issues
+### Sanity run (500 warmup / 500 sampling, 4 chains, 20 subjects, 4 arms / 2-arm raffle)
+Run purely to confirm the pipeline compiles and executes end-to-end at the new pilot
+scale — not a scale to draw firm identifiability conclusions from. `fit_stan.R`'s
+production settings (`iter_warmup = 2000`, `iter_sampling = 3000`) are unchanged in the
+committed code; this run temporarily overrode them locally and was reverted immediately
+after.
+
+- Runtime: ~53s total (mean chain time 48.4s)
+- Divergent transitions: 0 / 4000 total; max treedepth hits: 0
+- Rhat: all ≤ 1.01 (mu_alpha_rl 1.01, mu_beta_rl 1.01, sigma_alpha_rl 1.00, sigma_beta_rl 1.01)
+- ESS_bulk: mu_alpha_rl 381, mu_beta_rl 403, sigma_alpha_rl 404, sigma_beta_rl 508 —
+  one parameter (mu_alpha_rl) just under the 400 target, expected at this reduced
+  iteration budget and subject count, not a convergence concern
+- Pearson r (true vs. recovered): alpha_rl = 0.551, beta_rl = 0.746
+
+**Conclusion:** pipeline runs cleanly at 4 arms / 2-arm raffle / 20 subjects with no
+divergences and effectively converged chains. Recovery correlations are directionally
+sane for a 20-subject/500-iteration sanity pass; a full run at production settings
+(`iter_warmup = 2000`, `iter_sampling = 3000`) is recommended before treating recovery
+numbers as conclusive.
