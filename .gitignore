@@ -60,6 +60,10 @@ models/qval_and_decay_eval_raffle/qval_and_decay_eval_raffle
 models/decay_rl_decay_h/decay_rl_decay_h
 models/qval_and_decay_eval_raffle/qval_and_decay_eval_raffle.exe
 models/decay_rl_decay_h/decay_rl_decay_h.exe
+models/alpha_beta/alpha_beta
+models/alpha_beta/alpha_beta.exe
+models/classic_qval_raffle/classic_qval_raffle
+models/classic_qval_raffle/classic_qval_raffle.exe
 
 # fit.rds exceeds GitHub's 100MB push limit at full-scale iteration counts
 analysis/classic_qval_and_eval_param_recovery/artifacts/fit.rds

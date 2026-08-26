@@ -10,7 +10,7 @@ list2env(model_config, envir = environment())
 
 #### SETUP ####
 
-source(file.path(project_root, "models", generative_model, paste0(generative_model, ".r")))
+source(file.path(project_root, "models", generative_model, paste0(generative_model, ".R")))
 
 #### LOAD ARTIFACTS ####
 
