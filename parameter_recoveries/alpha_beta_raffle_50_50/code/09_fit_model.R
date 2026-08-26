@@ -55,10 +55,10 @@ message("Stan model compiled successfully. Starting sampling...")
 tryCatch({
   fit <- mod$sample(
     data            = stan_data,
-    chains          = 2,
-    iter_warmup     = 3000,
+    chains          = 4,
+    iter_warmup     = 2000,
     iter_sampling   = 2000,
-    parallel_chains = 2,
+    parallel_chains = 4,
     threads_per_chain = 1,
     refresh         = 100,
     show_messages   = TRUE,
