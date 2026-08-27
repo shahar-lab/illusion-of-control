@@ -125,3 +125,68 @@ narrowing priors is unlikely to fix a structural non-identifiability — the
 `RUN_CONVENTIONS.md` guidance to "check whether a specific parameter's prior is
 too narrow/wide" applies more to convergence problems than to this shape of
 recovery failure, so don't reach for that first without more diagnosis.
+
+### Full run: 2026-08-27, 200 subjects, 4 chains x 2000 warmup + 2000 sampling
+
+- **Runtime:** ~52 min (3132.6s total; ~3109.2s mean per chain) — about 1.4x
+  `alpha_beta_3arm_50_50`'s ~36 min at the same subject/trial/iteration count,
+  consistent with tracking two latent states (Q and E) per arm per trial instead
+  of one
+- **Divergent transitions:** 0
+- **Max treedepth hits:** 0
+- **Rhat / ESS** (all eight group-level parameters — clean at full scale, unlike
+  the pilot where several sat just above target):
+  - `mu_alpha`: rhat = 1.01, ess_bulk = 816
+  - `mu_beta`: rhat = 1.00, ess_bulk = 2017
+  - `mu_kappa`: rhat = 1.00, ess_bulk = 2125
+  - `mu_delta`: rhat = 1.00, ess_bulk = 993
+  - `sigma_alpha`: rhat = 1.00, ess_bulk = 1485
+  - `sigma_beta`: rhat = 1.00, ess_bulk = 2007
+  - `sigma_kappa`: rhat = 1.00, ess_bulk = 1544
+  - `sigma_delta`: rhat = 1.01, ess_bulk = 1527
+- **Pearson r (subject-level recovery):**
+  - alpha: r = 0.89
+  - beta: r = 0.85
+  - kappa: r = 0.58
+  - delta: r = 0.95
+
+### Kappa identifiability: confirmed and diagnosed (not a pilot-scale artifact)
+
+Kappa's r barely moved between pilot (0.56, n=30) and full scale (0.58, n=200),
+and the full-scale recovery scatter shows the identical compressed-band pattern
+— convergence itself is clean (0 divergences, Rhat ≤ 1.01 on every group
+parameter), so this is a real feature of the model/design, not insufficient
+sampling.
+
+The pilot's "kappa/delta trade off pairwise" hypothesis did **not** hold up at
+full scale either: mean within-subject `cor(kappa_sbj, delta_sbj)` across all 200
+subjects is ~0 (mean 0.056, median 0.12), with correlations of both signs and
+high subject-to-subject variance (SD 0.40) — not the systematic trade-off that
+story predicts.
+
+The actual mechanism, checked directly against this run's saved draws: **kappa's
+identifiability depends on the magnitude of that subject's delta**, not on a
+trade-off with it.
+- `cor(kappa posterior SD, |true delta|) = -0.75` — subjects with larger |delta|
+  get much tighter (more identified) kappa posteriors.
+- Splitting subjects into terciles by |true delta|, kappa's recovery Pearson r
+  rises monotonically: **r = 0.23** (lowest |delta| tercile, mean |delta| = 0.25)
+  → **r = 0.59** (mid, mean |delta| = 0.79) → **r = 0.84** (highest, mean |delta|
+  = 1.77).
+
+This makes sense from the likelihood structure: `kappa` only enters choice
+through `delta * E`. When a subject's `delta` is near 0, the perseveration trace
+has almost no effect on their choices regardless of `kappa`'s true value, so
+there's essentially no signal in the data to pin `kappa` down — the pooled
+r=0.58 is an average over subjects who are individually well-identified (high
+|delta|) and subjects who are nearly unidentified (low |delta|), not uniform
+weak identifiability. Subjects with `delta` near the population mean (0) are
+structurally the hardest to estimate `kappa` for, no matter how much data or how
+many iterations are added.
+
+**Implication:** more iterations/subjects won't fix this — it's a property of
+the design, not the sampler. If `kappa` needs to be well-identified for subjects
+with weak perseveration (small |delta|) specifically, the task itself needs to
+change (e.g. a reward schedule where perseveration and reward-tracking make
+different predictions, so choices are informative about the decay trace even
+when its overall weight is small) rather than the model or priors.
