@@ -66,6 +66,8 @@ models/classic_qval_raffle/classic_qval_raffle
 models/classic_qval_raffle/classic_qval_raffle.exe
 models/alpha_beta_3arm/alpha_beta_3arm
 models/alpha_beta_3arm/alpha_beta_3arm.exe
+models/alpha_beta_kappa_delta_3arm/alpha_beta_kappa_delta_3arm
+models/alpha_beta_kappa_delta_3arm/alpha_beta_kappa_delta_3arm.exe
 
 # fit.rds exceeds GitHub's 100MB push limit at full-scale iteration counts
 analysis/classic_qval_and_eval_param_recovery/artifacts/fit.rds
@@ -73,3 +75,4 @@ analysis/eval_only_param_recovery/artifacts/fit.rds
 analysis/qval_and_decay_eval_param_recovery/artifacts/fit.rds
 analysis/qval_and_decay_eval_raffle_param_recovery/artifacts/fit.rds
 analysis/decay_rl_decay_h_param_recovery/artifacts/fit.rds
+parameter_recoveries/alpha_beta_kappa_delta_3arm_param_recovery/artifacts/stan_fit.rds
