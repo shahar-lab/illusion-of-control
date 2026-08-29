@@ -18,9 +18,9 @@ OI_ORANGE <- "#E69F00"
 
 KEY_TO_CARD <- c(arrowleft = 1L, arrowup = 2L, arrowright = 3L)
 
-# Perfect stay-after-loss (100%) drives quasi-complete separation in the
+# Near-perfect stay/switch behavior drives quasi-complete separation in the
 # per-subject WSLS GLM, producing a non-informative, extreme wsls_beta.
-OUTLIERS <- c("69b7e04340b00585acbb91ac")
+OUTLIERS <- c("69b7e04340b00585acbb91ac", "65feaaac53eb219f09ad5ea0")
 
 dir.create("figures", showWarnings = FALSE)
 
@@ -100,8 +100,8 @@ p <- ggplot(merged, aes(x = wsls_beta, y = qdist_mean)) +
   geom_smooth(method = "lm", formula = y ~ x, colour = OI_BLUE, fill = OI_BLUE, alpha = 0.15, linewidth = 1) +
   geom_point(aes(colour = color_grp), size = 2.5, alpha = 0.85) +
   scale_colour_manual(values = c("understood = felt" = OI_BLUE, "understood != felt" = OI_ORANGE), name = NULL) +
-  annotate("text", x = max(merged$wsls_beta), y = max(merged$qdist_mean),
-           label = sprintf("Pearson r = %.2f", r_pearson), hjust = 1, vjust = 1, size = 3.2, colour = GREY65) +
+  annotate("text", x = Inf, y = -Inf,
+           label = sprintf("Pearson r = %.2f", r_pearson), hjust = 1.1, vjust = -1, size = 3.2, colour = GREY65) +
   labs(x = expression("WSLS reward effect (" * beta[j] * ", log-odds)"),
        y = "Mean Q-distance from 0.5\n(summed squared, per-trial average)") +
   theme_minimal(base_size = 12) +
