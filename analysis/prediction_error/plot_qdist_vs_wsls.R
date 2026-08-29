@@ -18,6 +18,10 @@ OI_ORANGE <- "#E69F00"
 
 KEY_TO_CARD <- c(arrowleft = 1L, arrowup = 2L, arrowright = 3L)
 
+# Perfect stay-after-loss (100%) drives quasi-complete separation in the
+# per-subject WSLS GLM, producing a non-informative, extreme wsls_beta.
+OUTLIERS <- c("69b7e04340b00585acbb91ac")
+
 dir.create("figures", showWarnings = FALSE)
 
 #### LOAD CHOICE DATA ####
@@ -85,9 +89,10 @@ wsls_betas <- wsls_df |>
 merged <- qdist_summary |>
   inner_join(wsls_betas, by = "participant") |>
   inner_join(alpha_df |> select(participant, understood_eq_felt), by = "participant") |>
-  mutate(color_grp = if_else(understood_eq_felt, "understood = felt", "understood != felt"))
+  mutate(color_grp = if_else(understood_eq_felt, "understood = felt", "understood != felt")) |>
+  filter(!(participant %in% OUTLIERS))
 
-cat(sprintf("Merged subjects: %d\n", nrow(merged)))
+cat(sprintf("Merged subjects (after outlier removal): %d\n", nrow(merged)))
 
 r_pearson <- cor(merged$wsls_beta, merged$qdist_mean)
 
