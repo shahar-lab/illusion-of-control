@@ -16,10 +16,10 @@ library(officer)
 library(flextable)
 
 # Run settings
-run_name      <- "sanity_n20"   # sanity_n20 | n35 | n200
-Nsubjects     <- 20
-iter_warmup   <- 500
-iter_sampling <- 500
+run_name      <- "n35"          # sanity_n20 | n35 | n200
+Nsubjects     <- 35
+iter_warmup   <- 2000
+iter_sampling <- 2000
 
 # Seeds: identical across classic_qval_randomwalk and classic_qval_p50
 seed_params <- 1001
