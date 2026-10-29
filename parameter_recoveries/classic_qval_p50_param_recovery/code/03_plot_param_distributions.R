@@ -4,28 +4,32 @@
 
 individual_params <- read_csv(file.path(artifacts_dir, "individual_params.csv"), show_col_types = FALSE)
 
-# Dots plus the generating density, rescaled to the height of the tallest stack
-dot_panel <- function(values, full_range, axis_breaks, density_fun, x_label) {
-  p <- ggplot(tibble(x = values), aes(x = x)) +
-    geom_dots(layout = "bin", binwidth = NA, fill = "gray50", colour = "gray30") +
+# Stacked dots per fixed-width bin, with the generating density scaled to expected counts
+dot_panel <- function(values, full_range, axis_breaks, density_fun, x_label, n_bins = 20) {
+  binwidth <- diff(full_range) / n_bins
+  dots <- tibble(x = values) |>
+    mutate(bin = pmin(floor((x - full_range[1]) / binwidth), n_bins - 1),
+           x_center = full_range[1] + (bin + 0.5) * binwidth) |>
+    group_by(bin) |>
+    mutate(count = row_number() - 0.5) |>
+    ungroup()
+  dot_size <- min(2.6, 90 / max(dots$count + 0.5))
+
+  density_grid <- tibble(x = seq(full_range[1], full_range[2], length.out = 400)) |>
+    mutate(density = density_fun(x) * length(values) * binwidth) |>
+    filter(is.finite(density))
+
+  ggplot(dots, aes(x = x_center, y = count)) +
+    geom_point(shape = 21, size = dot_size, fill = "gray50", colour = "gray30") +
+    geom_line(data = density_grid, aes(x = x, y = density), colour = "#0072B2", linewidth = 0.8) +
     scale_x_continuous(breaks = axis_breaks) +
+    scale_y_continuous(name = "Count", breaks = function(lims) pretty(c(0, floor(lims[2])), n = 4) |> round() |> unique(),
+                       expand = expansion(mult = c(0, 0.05))) +
+    expand_limits(y = 0) +
     coord_cartesian(xlim = full_range, clip = "off") +
     theme_minimal(base_size = 13) +
     theme(panel.grid.minor = element_blank()) +
     labs(x = x_label)
-
-  built       <- ggplot_build(p)$data[[1]]
-  max_count   <- built |> count(bin) |> pull(n) |> max()
-  tick_counts <- round(seq(0, max_count, length.out = 4))
-
-  density_grid <- tibble(x = seq(full_range[1], full_range[2], length.out = 400)) |>
-    mutate(density = density_fun(x)) |>
-    filter(is.finite(density)) |>
-    mutate(density = density / max(density) * max(built$y))
-
-  p +
-    geom_line(data = density_grid, aes(x = x, y = density), colour = "#0072B2", linewidth = 0.8) +
-    scale_y_continuous(name = "Count", breaks = seq(0, max(built$y), length.out = 4), labels = tick_counts)
 }
 
 alpha_density <- function(x) dnorm(qlogis(x), mu_alpha, sigma_alpha) / (x * (1 - x))
