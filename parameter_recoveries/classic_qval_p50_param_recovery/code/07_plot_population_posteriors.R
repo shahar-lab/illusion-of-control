@@ -31,13 +31,24 @@ panel_info <- draws_long |>
   ) |>
   mutate(x_min = lo - 0.20 * (hi - lo), x_max = hi + 0.20 * (hi - lo))
 
+# Slab: kernel density over the draws' range, tallest panel scaled to 0.9 (ggdist's stat_slab look)
+slab_data <- draws_long |>
+  group_by(label) |>
+  reframe(as_tibble(density(value, n = 512, from = min(value), to = max(value))[c("x", "y")])) |>
+  mutate(y = 0.9 * y / max(y))
+
+interval_data <- draws_long |>
+  group_by(label) |>
+  summarise(median_value = median(value), lower = quantile(value, 0.05), upper = quantile(value, 0.95), .groups = "drop")
+
 panel_limits <- panel_info |>
   select(label, x_min, x_max) |>
   pivot_longer(c(x_min, x_max), values_to = "value")
 
-p <- ggplot(draws_long, aes(x = value, y = 0)) +
-  stat_slab(fill = "gray80") +
-  stat_pointinterval(.width = 0.90, point_size = 3) +
+p <- ggplot() +
+  geom_ribbon(data = slab_data, aes(x = x, ymin = 0, ymax = y), fill = "gray80") +
+  geom_segment(data = interval_data, aes(x = lower, xend = upper, y = 0, yend = 0), linewidth = 1) +
+  geom_point(data = interval_data, aes(x = median_value, y = 0), size = 3) +
   geom_blank(data = panel_limits, aes(x = value, y = 0)) +
   geom_vline(data = panel_info, aes(xintercept = median_value), linetype = "dashed", colour = "grey65", linewidth = 0.4) +
   geom_vline(data = panel_info, aes(xintercept = true_value), linetype = "dotted", colour = "blue", linewidth = 0.8) +

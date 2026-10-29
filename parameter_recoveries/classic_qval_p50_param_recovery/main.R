@@ -12,7 +12,6 @@ library(posterior)
 library(ggplot2)
 library(patchwork)
 library(bayesplot)
-library(ggdist)
 library(officer)
 library(flextable)
 
