@@ -16,8 +16,8 @@ library(officer)
 library(flextable)
 
 # Run settings
-run_name      <- "n35"          # sanity_n20 | n35 | n200
-Nsubjects     <- 35
+run_name      <- "n200"         # sanity_n20 | n35 | n200
+Nsubjects     <- 200
 iter_warmup   <- 2000
 iter_sampling <- 2000
 

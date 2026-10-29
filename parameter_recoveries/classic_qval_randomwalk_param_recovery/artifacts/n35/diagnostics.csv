@@ -1,0 +1,2 @@
+divergences,max_treedepth_hits,group_max_rhat,group_min_ess_bulk,group_n_rhat_gt_1.01,group_n_ess_lt_400,sbj_max_rhat,sbj_min_ess_bulk,sbj_n_rhat_gt_1.01,sbj_n_ess_lt_400
+0,0,1.0025730002063875,1565.815141081015,0,0,1.0010542776227176,5135.182426407008,0,0
