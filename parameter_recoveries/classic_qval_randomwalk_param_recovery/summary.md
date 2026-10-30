@@ -52,4 +52,28 @@ Artifacts go to `artifacts/<run_name>/`, outputs to `output/<run_name>/`.
 
 ## 4. Findings / Summary
 
-(Filled in after the runs.)
+All runs on the laptop (Windows), 4 chains; sanity 500 + 500, n35 and n200 2000 + 3000.
+
+**Convergence**
+
+| Run | Divergences | Group max Rhat | Group min ESS_bulk | Subject max Rhat | Fit time (min) |
+|---|---|---|---|---|---|
+| sanity_n20 | 0 | 1.013 (1 group parameter > 1.01) | 377 | 1.008 | 1.1 |
+| n35 | 0 | 1.001 | 2787 | 1.002 | 6.6 |
+| n200 | 0 | 1.001 | 3227 | 1.002 | 135.9 (in parallel with p50 n200) |
+
+**Subject-level recovery** (true vs posterior median)
+
+| Run | alpha r | alpha slope | alpha 90% cov. | alpha SD ratio | beta r | beta slope | beta 90% cov. | alpha-beta error r |
+|---|---|---|---|---|---|---|---|---|
+| sanity_n20 | 0.76 | 0.48 | 0.95 | 0.63 | 0.98 | 0.98 | 0.95 | -0.21 |
+| n35 | 0.63 | 0.31 | 0.89 | 0.49 | 0.98 | 0.97 | 0.97 | -0.31 |
+| n200 | 0.58 | 0.33 | 0.91 | 0.57 | 0.95 | 1.28 | 0.91 | -0.13 |
+
+**Population-level recovery** (natural scale; true alpha_pop = 0.50, beta_pop = 0.78)
+
+| Run | alpha_pop median [90% CI] | beta_pop median [90% CI] |
+|---|---|---|
+| sanity_n20 | 0.46 [0.31, 0.62] | 1.03 [0.70, 1.49] |
+| n35 | 0.54 [0.43, 0.65] | 0.86 [0.63, 1.13] |
+| n200 | 0.51 [0.47, 0.56] | 0.74 [0.66, 0.83] |

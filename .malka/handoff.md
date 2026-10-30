@@ -1,5 +1,14 @@
 # Handoff: classic_qval recoveries (random walk vs p = 0.5)
 
+## Status 2026-10-30 (supersedes the cloud instructions below)
+- Both folders aligned with the PI-approved `classic_qval_and_eval` style: 03 geom_dotplot, 07 ggdist on the
+  natural scale (alpha_pop, beta_pop), 08/09 population table natural scale, 2000 + 3000 iterations.
+- 07 needs ggdist again, so the pipeline runs locally only (the cloud container cannot install ggdist).
+- sanity_n20, n35, n200 rerun locally for both environments; all 0 divergences, group Rhat <= 1.003.
+- Step 5 done: `summary.md` section 4 in both folders and `parameter_recoveries/classic_qval_comparison.md`.
+- Laptop note: screen-off triggers Modern Standby, which pauses the fits; keep screen/sleep at Never while running.
+- gridExtra 2.3.1 now installed locally.
+
 Branch: `feature/add-classic-qval-recoveries`. Steps 1–3 done. Step 4 (full runs) is meant to run in a
 Claude Code **cloud** session, started by the researcher from their phone; Step 5 can follow there or locally.
 
