@@ -42,8 +42,9 @@ pop_draws         <- read_rds(file.path(artifacts_dir, "population_posteriors.rd
 population_params <- read_csv(file.path(artifacts_dir, "population_params.csv"), show_col_types = FALSE)
 
 population_recovery <- tibble(
-  variable   = c("mu_alpha", "mu_beta", "sigma_alpha", "sigma_beta"),
-  true_value = c(population_params$mu, population_params$sigma)
+  variable   = c("alpha_pop", "beta_pop"),
+  true_value = c(plogis(population_params$mu[population_params$param == "alpha"]),
+                 exp(population_params$mu[population_params$param == "beta"]))
 ) |>
   rowwise() |>
   mutate(

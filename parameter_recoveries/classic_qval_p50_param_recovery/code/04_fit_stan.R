@@ -26,7 +26,7 @@ fit <- model$sample(
   iter_warmup     = iter_warmup,
   iter_sampling   = iter_sampling,
   seed            = seed_stan,
-  refresh         = 500
+  refresh         = 200
 )
 runtime_min <- as.numeric(difftime(Sys.time(), start_time, units = "mins"))
 

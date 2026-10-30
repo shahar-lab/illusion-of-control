@@ -19,9 +19,9 @@ scatter_panel <- function(param_name) {
   pearson_r     <- cor(df$true_val, df$recovered_val, method = "pearson")
 
   ggplot(df, aes(x = true_val, y = recovered_val)) +
-    geom_point(colour = "#4477AA", alpha = 0.75, size = 2) +
+    geom_point(colour = "#4477AA", alpha = 0.6, size = 1.8) +
     geom_smooth(method = "lm", formula = y ~ x, se = FALSE, colour = "#EE6677", linewidth = 0.8) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60", linewidth = 0.6) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
     annotate("text", x = Inf, y = Inf, label = sprintf("[Pearson r = %.2f]", pearson_r),
              hjust = 1.05, vjust = 1.4, size = 3.5, colour = "grey30") +
     scale_x_continuous(breaks = axis_breaks) +

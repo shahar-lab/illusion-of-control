@@ -12,6 +12,7 @@ library(posterior)
 library(ggplot2)
 library(patchwork)
 library(bayesplot)
+library(ggdist)
 library(officer)
 library(flextable)
 
@@ -19,7 +20,7 @@ library(flextable)
 run_name      <- "n200"         # sanity_n20 | n35 | n200
 Nsubjects     <- 200
 iter_warmup   <- 2000
-iter_sampling <- 2000
+iter_sampling <- 3000
 
 # Seeds: identical across classic_qval_randomwalk and classic_qval_p50
 seed_params <- 1001

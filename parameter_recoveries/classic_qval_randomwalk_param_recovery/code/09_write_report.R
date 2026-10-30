@@ -59,9 +59,9 @@ doc <- read_docx() |>
   body_add_par("Population-level recovery", style = "heading 2") |>
   body_add_flextable(population_table) |>
   body_add_img(file.path(output_dir, "03_param_distributions.png"), width = 6.5, height = 3.25) |>
-  caption(1, "True agent-level alpha and beta drawn from the generating population (dots), with the generating density overlaid (blue line).") |>
+  caption(1, "True agent-level alpha and beta drawn from the generating population (one dot per agent).") |>
   body_add_img(file.path(output_dir, "07_population_posteriors.png"), width = 6.5, height = 3.9) |>
-  caption(2, "Posterior densities of the population location (mu) and scale (sigma) parameters on the unconstrained scale, with median and 90% credible interval; the dotted blue line marks the true generating value.") |>
+  caption(2, "Posterior densities of the population-level alpha (inv_logit(mu_alpha)) and beta (exp(mu_beta)) on the natural scale, with median and 80% / 90% credible intervals; the dashed red line marks the true generating value.") |>
   body_add_img(file.path(output_dir, "06_param_recovery.png"), width = 6.5, height = 3.25) |>
   caption(3, "True versus recovered (posterior median) agent-level parameters. The red line is the OLS fit, the dashed grey line is the identity line, and r is Pearson's correlation.")
 

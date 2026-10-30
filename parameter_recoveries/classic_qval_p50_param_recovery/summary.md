@@ -21,7 +21,7 @@ in `parameter_recoveries/classic_qval_comparison.md`.
 * **Population location:** mu_alpha = 0, mu_beta = -0.25
 * **Population scale:** sigma_alpha = 0.85, sigma_beta = 0.75
 * **Transforms:** alpha = plogis(N(mu_alpha, sigma_alpha)); beta = exp(N(mu_beta, sigma_beta))
-* **Sampler:** Stan via cmdstanr, 4 chains; sanity 500 warmup + 500 sampling, full runs 2000 + 2000
+* **Sampler:** Stan via cmdstanr, 4 chains; sanity 500 warmup + 500 sampling, full runs 2000 + 3000
 * **Priors (fitted model):** mu ~ N(0, 3), sigma ~ half-N(0, 3), raw ~ N(0, 1), non-centred
 * **Seeds:** seed_params = 1001 (true parameters: 200 draws, first n_subjects kept, so runs are nested),
   seed_env = 2002 (reward schedule), seed_sim = 3003 (choices/rewards), seed_stan = 4004 (MCMC).
@@ -40,11 +40,11 @@ subject-length vectors and population scalars are saved.
 |---|---|---|
 | `01_generate_data.R` | reward schedule, true parameters, simulated choices | `cfg.rds`, `df.rds`, `population_params.csv`, `individual_params.csv` |
 | `02_plot_reward_schedule.R` | p(win) per arm over trials | `02_reward_schedule.{pdf,png}` |
-| `03_plot_param_distributions.R` | dot histograms of true alpha, beta + generating density | `03_param_distributions.{pdf,png}` |
+| `03_plot_param_distributions.R` | dot histograms of true alpha, beta | `03_param_distributions.{pdf,png}` |
 | `04_fit_stan.R` | fit; subject medians/SD/90% CI; per-subject alpha-beta posterior correlation | `fit.rds` (gitignored), `recovered_summary.csv`, `posterior_cor.csv`, `population_posteriors.rds` |
 | `05_diagnostics.R` | divergences, Rhat, ESS; trace/rank/pairs plots | `diagnostics.csv`, `05_diagnostics.pdf` |
 | `06_plot_recovery.R` | true vs posterior median scatter | `06_param_recovery.{pdf,png}` |
-| `07_plot_population_posteriors.R` | mu, sigma posteriors vs true values | `07_population_posteriors.{pdf,png}` |
+| `07_plot_population_posteriors.R` | alpha_pop, beta_pop posteriors (natural scale) vs true values | `07_population_posteriors.{pdf,png}` |
 | `08_summary_table.R` | r, bias, slope, coverage, posterior SD, spread ratio, trade-offs | `08_recovery_summary.csv`, `08_population_recovery.csv` |
 | `09_write_report.R` | Word narrative + multi-page vector PDF | `09_recovery_report.docx`, `09_recovery_figures.pdf` |
 
