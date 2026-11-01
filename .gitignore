@@ -73,3 +73,5 @@ models/classic_qval_unbounded_beta/classic_qval_unbounded_beta
 models/classic_qval_unbounded_beta/classic_qval_unbounded_beta.exe
 parameter_recoveries/classic_qval_randomwalk_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_p50_param_recovery/artifacts/*/fit.rds
+parameter_recoveries/classic_qval_unbounded_beta_randomwalk_param_recovery/artifacts/*/fit.rds
+parameter_recoveries/classic_qval_unbounded_beta_p50_param_recovery/artifacts/*/fit.rds
