@@ -26,7 +26,22 @@ Part A (highbeta, log-normal beta: mu_alpha 0, sigma_alpha 1.5, mu_beta 1, sigma
 - p50 n200_highbeta started 2026-11-01 ~22:30; randomwalk n200_highbeta_walk3021 started ~22:50 (the walk-2002
   n200_highbeta run was stopped and its partial folders deleted). Part B randomwalk run name: n200_walk3021.
 
-Part B (prepared, not run yet): `models/classic_qval_unbounded_beta/` (beta_sbj = mu_beta + sigma_beta * raw,
+Results (all clean: 0 divergences, group Rhat <= 1.003):
+- p50 n200_highbeta: alpha r / slope 0.93 / 0.90 (old n200 0.49 / 0.24). Commit 14760e2.
+- randomwalk n200_highbeta_walk3021: 0.94 / 0.89 (old n200 on walk 2002: 0.58 / 0.33). Commit 00f8894.
+- unbounded p50 n200: 0.88 / 0.85; unbounded randomwalk n200_walk3021: 0.90 / 0.87. Commit 98f08cb.
+- Part C done 2026-11-02: summary.md section 5 in both classic_qval folders, new summary.md in both unbounded
+  folders, new half of `parameter_recoveries/classic_qval_comparison.md` (old vs highbeta vs unbounded, beta-bin table).
+  Bin numbers come from a scratchpad script (`beta_bins.R`, not in repo).
+
+Open items (ask the researcher):
+- Commit 98f08cb accidentally committed both unbounded fit.rds files (73 MB each; the .gitignore only covered the
+  old folders). 479f0d8 untracks and gitignores them, but the blobs are in the pushed branch history. Before
+  merging, either squash/rewrite the branch (force-push to this feature branch) or accept ~145 MB in history.
+- Should the old randomwalk n35/n200 (walk 2002) be rerun on walk 3021 for a clean environment comparison? Not asked for.
+- The unbounded population has 10.5% of agents with beta < 1. Whether that is realistic is a question for the pilot fits.
+
+Part B setup: `models/classic_qval_unbounded_beta/` (beta_sbj = mu_beta + sigma_beta * raw,
 beta_pop = mu_beta; stanc OK; binary gitignored) and folders
 `classic_qval_unbounded_beta_{randomwalk,p50}_param_recovery/` (population alpha plogis(N(0, 1.5)),
 beta N(3, 1.5); run_name n200; 01 identity draw; 06 linear x axis because beta can be < 0; 07/08 true beta_pop = mu;
