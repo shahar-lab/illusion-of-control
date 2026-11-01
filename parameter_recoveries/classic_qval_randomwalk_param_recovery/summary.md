@@ -77,3 +77,58 @@ All runs on the laptop (Windows), 4 chains; sanity 500 + 500, n35 and n200 2000 
 | sanity_n20 | 0.46 [0.31, 0.62] | 1.03 [0.70, 1.49] |
 | n35 | 0.54 [0.43, 0.65] | 0.86 [0.63, 1.13] |
 | n200 | 0.51 [0.47, 0.56] | 0.74 [0.66, 0.83] |
+
+## 5. Highbeta population (2026-11-01)
+
+The original beta population (exp(N(-0.25, 0.75)), median 0.73, 66% below 1) is close to random choice
+(Q is in [0, 1]), and alpha recovered poorly at low beta. New population, suggested by Ido Ben-Artzi:
+**mu_alpha = 0, sigma_alpha = 1.5; mu_beta = 1, sigma_beta = 0.5** (beta median 2.7, mean ~3.1, SD ~1.6;
+2% below 1). Model, priors, links, seed_params/seed_sim/seed_stan and the 200-draw nesting are unchanged, so
+each subject keeps the same underlying z-scores as in sections 1-4. n35 was skipped.
+
+**New random walk.** The original walk (seed_env 2002) had arm 3 best for ~110 of 150 trials. The researcher
+picked a more balanced walk, **seed_env = 3021** (five persistent best-arm switches, each arm best on 26-45% of trials,
+mean best-vs-second gap 0.21), screened from 5000 seeds of the same generator. Runs on it carry a `_walk3021` suffix.
+`sanity_n20_highbeta` still used walk 2002 (population change only).
+
+New figure: `06_alpha_error_vs_beta` (alpha posterior median - true vs true beta, log x, loess), figure 4 in the
+report and page 4 of the PDF.
+
+**Convergence**
+
+| Run | Walk | Divergences | Group max Rhat | Group min ESS_bulk | Subject max Rhat | Fit time (min) |
+|---|---|---|---|---|---|---|
+| sanity_n20_highbeta | 2002 | 0 | 1.013 (2 group parameters > 1.01) | 374 | 1.010 | 0.7 |
+| sanity_n20_highbeta_walk3021 | 3021 | 0 | 1.015 (1 group parameter > 1.01) | 396 | 1.004 | 1.9 |
+| n200_highbeta_walk3021 | 3021 | 0 | 1.001 | 2810 | 1.002 | 65.7 (in parallel with p50 n200_highbeta) |
+
+**Subject-level recovery**
+
+| Run | alpha r | alpha slope | alpha 90% cov. | alpha SD ratio | beta r | beta slope | beta 90% cov. | alpha-beta error r |
+|---|---|---|---|---|---|---|---|---|
+| sanity_n20_highbeta | 0.91 | 0.83 | 0.90 | 0.92 | 0.94 | 0.70 | 0.80 | -0.16 |
+| sanity_n20_highbeta_walk3021 | 0.97 | 0.95 | 0.95 | 0.98 | 0.93 | 0.72 | 0.85 | -0.28 |
+| n200_highbeta_walk3021 | 0.94 | 0.89 | 0.91 | 0.95 | 0.94 | 0.86 | 0.85 | -0.43 |
+
+**Population-level recovery** (natural scale; true alpha_pop = 0.50, beta_pop = exp(1) = 2.72)
+
+| Run | alpha_pop median [90% CI] | beta_pop median [90% CI] |
+|---|---|---|
+| sanity_n20_highbeta | 0.52 [0.36, 0.70] | 3.12 [2.55, 3.86] |
+| sanity_n20_highbeta_walk3021 | 0.49 [0.32, 0.68] | 3.31 [2.71, 4.03] |
+| n200_highbeta_walk3021 | 0.50 [0.45, 0.54] | 2.73 [2.55, 2.91] |
+
+**Alpha by true beta** (n200; alpha r, mean alpha error)
+
+| beta | n200 (old population, walk 2002) | n200_highbeta_walk3021 |
+|---|---|---|
+| < 0.5 | n = 55: r 0.32, error 0.00 | none |
+| 0.5-1 | n = 78: r 0.60, error 0.01 | n = 4: r 0.17, error -0.12 |
+| 1-2 | n = 42: r 0.68, error 0.04 | n = 50: r 0.91, error -0.04 |
+| 2-4 | n = 20: r 0.78, error 0.04 | n = 102: r 0.95, error 0.00 |
+| >= 4 | n = 5: r 0.97, error -0.05 | n = 44: r 0.96, error 0.02 |
+
+Alpha recovery still depends on beta within a run, but almost all agents now sit where it is good.
+At the low end (beta < ~1.5) alpha is underestimated. Old n200 and n200_highbeta_walk3021 differ in both
+population and walk; the sanity pair (walk 2002, population only) shows the population effect alone at N = 20:
+alpha r 0.76 -> 0.91, slope 0.48 -> 0.83.
