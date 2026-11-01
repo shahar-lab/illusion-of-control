@@ -1,5 +1,31 @@
 # Handoff: classic_qval recoveries (random walk vs p = 0.5)
 
+## Status 2026-11-01: beta-population debugging (branch `feature/classic-qval-highbeta`)
+Problem: the old generating beta (exp(N(-0.25, 0.75)), median 0.73) is near random choice, so alpha is
+unrecoverable. Ido Ben-Artzi suggested beta ~ N(3, 1.5), alpha plogis(N(0, 1.5)), and an unbounded beta.
+Old runs (sanity_n20, n35, n200) are kept untouched; new runs use new run names.
+
+Decisions with the researcher (2026-11-01):
+- n35_highbeta skipped; only sanity_n20_highbeta and n200_highbeta. Parallel runs allowed.
+- Pre-approved for the night: if both n200_highbeta runs are clean (0 divergences, group Rhat <= 1.01),
+  go on to Part B and Part C without waiting. If not clean: diagnose, write it here, stop.
+- Commit + push artifacts/ and output/ after each finished run; fit.rds stays gitignored and local.
+
+Part A (highbeta, log-normal beta: mu_alpha 0, sigma_alpha 1.5, mu_beta 1, sigma_beta 0.5):
+- 06 adds `06_alpha_error_vs_beta` (alpha median - true vs true beta, log x, loess); 09 adds it as figure 4 and PDF page 4.
+- sanity_n20_highbeta done (commit 35d944c). alpha r / slope: randomwalk 0.91 / 0.84 (old 0.76 / 0.48),
+  p50 0.97 / 0.93 (old 0.62 / 0.18). 0 divergences; group Rhat 1.013 (rw) / 1.005 (p50) at 500 + 500.
+  Sporadic warmup-only "log odds is inf" (3-4 per run), as before.
+- Running in parallel two `Rscript.exe` cannot start at the same instant: cmdstanr locks
+  `classic_qval.exe` (system error 32). Start the second run after the first is sampling.
+- n200_highbeta started 2026-11-01 evening, both environments.
+
+Part B (prepared, not run yet): `models/classic_qval_unbounded_beta/` (beta_sbj = mu_beta + sigma_beta * raw,
+beta_pop = mu_beta; stanc OK; binary gitignored) and folders
+`classic_qval_unbounded_beta_{randomwalk,p50}_param_recovery/` (population alpha plogis(N(0, 1.5)),
+beta N(3, 1.5); run_name n200; 01 identity draw; 06 linear x axis because beta can be < 0; 07/08 true beta_pop = mu;
+09 text/captions for the identity link).
+
 ## Status 2026-10-30 (supersedes the cloud instructions below)
 - Both folders aligned with the PI-approved `classic_qval_and_eval` style: 03 geom_dotplot, 07 ggdist on the
   natural scale (alpha_pop, beta_pop), 08/09 population table natural scale, 2000 + 3000 iterations.
