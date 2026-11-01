@@ -69,5 +69,7 @@ analysis/qval_and_decay_eval_raffle_param_recovery/artifacts/fit.rds
 analysis/decay_rl_decay_h_param_recovery/artifacts/fit.rds
 models/classic_qval/classic_qval
 models/classic_qval/classic_qval.exe
+models/classic_qval_unbounded_beta/classic_qval_unbounded_beta
+models/classic_qval_unbounded_beta/classic_qval_unbounded_beta.exe
 parameter_recoveries/classic_qval_randomwalk_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_p50_param_recovery/artifacts/*/fit.rds

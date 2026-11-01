@@ -17,10 +17,10 @@ library(officer)
 library(flextable)
 
 # Run settings
-run_name      <- "n200"         # sanity_n20 | n35 | n200
-Nsubjects     <- 200
-iter_warmup   <- 2000
-iter_sampling <- 3000
+run_name      <- "sanity_n20_highbeta"  # sanity_n20 | n35 | n200 | sanity_n20_highbeta | n200_highbeta
+Nsubjects     <- 20
+iter_warmup   <- 500
+iter_sampling <- 500
 
 # Seeds: identical across classic_qval_randomwalk and classic_qval_p50
 seed_params <- 1001
@@ -37,9 +37,9 @@ environment_description <- "all arms offered every trial; p(win) per arm follows
 
 # Generating population (alpha = plogis(N(mu, sigma)), beta = exp(N(mu, sigma)))
 mu_alpha    <- 0
-sigma_alpha <- 0.85
-mu_beta     <- -0.25
-sigma_beta  <- 0.75
+sigma_alpha <- 1.5
+mu_beta     <- 1
+sigma_beta  <- 0.5
 
 project_root  <- here::here()
 folder_dir    <- file.path(project_root, "parameter_recoveries", "classic_qval_randomwalk_param_recovery")
