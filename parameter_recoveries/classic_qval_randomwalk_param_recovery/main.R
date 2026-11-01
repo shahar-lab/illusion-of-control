@@ -17,10 +17,10 @@ library(officer)
 library(flextable)
 
 # Run settings
-run_name      <- "sanity_n20_highbeta_walk3021"  # sanity_n20 | n35 | n200 | sanity_n20_highbeta (walk 2002) | sanity_n20_highbeta_walk3021 | n200_highbeta_walk3021
-Nsubjects     <- 20
-iter_warmup   <- 500
-iter_sampling <- 500
+run_name      <- "n200_highbeta_walk3021"  # sanity_n20 | n35 | n200 | sanity_n20_highbeta (walk 2002) | sanity_n20_highbeta_walk3021 | n200_highbeta_walk3021
+Nsubjects     <- 200
+iter_warmup   <- 2000
+iter_sampling <- 3000
 
 # Seeds: identical across classic_qval_randomwalk and classic_qval_p50, except seed_env (p50 does not use it)
 seed_params <- 1001

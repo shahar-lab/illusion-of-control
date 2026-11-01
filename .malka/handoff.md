@@ -18,7 +18,13 @@ Part A (highbeta, log-normal beta: mu_alpha 0, sigma_alpha 1.5, mu_beta 1, sigma
   Sporadic warmup-only "log odds is inf" (3-4 per run), as before.
 - Running in parallel two `Rscript.exe` cannot start at the same instant: cmdstanr locks
   `classic_qval.exe` (system error 32). Start the second run after the first is sampling.
-- n200_highbeta started 2026-11-01 evening, both environments.
+- Walk change (researcher, 2026-11-01): walk 2002 had arm 3 best for ~110 trials (unbalanced). 5000 seeds of the
+  same generator were screened (>= 3 persistent best-arm switches, each arm best >= 20% of trials, little clamping);
+  the researcher picked seed_env 3021. Randomwalk runs on the new walk carry a `_walk3021` suffix; runs without a
+  suffix used 2002. p50 does not use seed_env (left at 2002). Script: scratchpad `walks.R` (not in repo).
+- sanity_n20_highbeta_walk3021: alpha r / slope 0.97 / 0.95, beta 0.93 / 0.72; 0 divergences, group Rhat 1.015 (500 + 500).
+- p50 n200_highbeta started 2026-11-01 ~22:30; randomwalk n200_highbeta_walk3021 started ~22:50 (the walk-2002
+  n200_highbeta run was stopped and its partial folders deleted). Part B randomwalk run name: n200_walk3021.
 
 Part B (prepared, not run yet): `models/classic_qval_unbounded_beta/` (beta_sbj = mu_beta + sigma_beta * raw,
 beta_pop = mu_beta; stanc OK; binary gitignored) and folders
