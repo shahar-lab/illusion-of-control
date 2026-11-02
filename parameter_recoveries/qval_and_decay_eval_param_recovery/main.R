@@ -13,21 +13,64 @@ library(ggplot2)
 library(patchwork)
 library(bayesplot)
 library(ggdist)
+library(officer)
+library(flextable)
+
+# Run settings
+run_name      <- "sanity_n20_highbeta"        # legacy_* (old pipeline) | sanity_n20_highbeta | n200_highbeta
+Nsubjects     <- 20
+iter_warmup   <- 500
+iter_sampling <- 500
+
+# Seeds: identical to the classic_qval recoveries, so alpha_rl and beta_rl match classic_qval's alpha and beta
+seed_params <- 1001
+seed_env    <- 2002
+seed_sim    <- 3003
+seed_stan   <- 4004
+
+# Environment
+environment_name <- "p50"
+Narms            <- 3
+Ntrials          <- 150
+p_win            <- 0.5
+environment_description <- "all arms offered every trial; p(win) = 0.5 for every arm on every trial"
+
+# Generating population, drawn in this row order (alpha_rl, beta_rl as classic_qval highbeta)
+population_params <- tribble(
+  ~param,      ~mu, ~sigma, ~link,
+  "alpha_rl",  0,   1.5,    "inv_logit",
+  "beta_rl",   1,   0.5,    "exp",
+  "alpha_per", 0,   1.5,    "inv_logit",
+  "beta_per",  0,   1.5,    "identity"
+)
+
+# Error figure: error in `target` against the true value of `by` (|by| when by_abs)
+error_pairs <- tribble(
+  ~target,     ~by,        ~by_abs,
+  "alpha_rl",  "beta_rl",  FALSE,
+  "alpha_per", "beta_per", TRUE
+)
 
 project_root  <- here::here()
-code_dir      <- file.path(project_root, "analysis", "qval_and_decay_eval_param_recovery", "code")
-artifacts_dir <- file.path(project_root, "analysis", "qval_and_decay_eval_param_recovery", "artifacts")
-output_dir    <- file.path(project_root, "analysis", "qval_and_decay_eval_param_recovery", "output")
+folder_dir    <- file.path(project_root, "parameter_recoveries", "qval_and_decay_eval_param_recovery")
+code_dir      <- file.path(folder_dir, "code")
+artifacts_dir <- file.path(folder_dir, "artifacts", run_name)
+output_dir    <- file.path(folder_dir, "output", run_name)
+dir.create(artifacts_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(output_dir,    showWarnings = FALSE, recursive = TRUE)
 
-source(file.path(project_root, "models", "qval_and_decay_eval", "qval_and_decay_eval.R"))
+model_name <- "qval_and_decay_eval"
+source(file.path(project_root, "models", model_name, paste0(model_name, ".R")))
 
 
 #### EXECUTE PIPELINE ####
 
-source(file.path(code_dir, "generate_data.R"))
-source(file.path(code_dir, "plot_param_distributions.R"))
-source(file.path(code_dir, "fit_stan.R"))
-source(file.path(code_dir, "diagnostics.R"))
-source(file.path(code_dir, "plot_recovery.R"))
-source(file.path(code_dir, "plot_population_posteriors.R"))
-source(file.path(code_dir, "summary_table.R"))
+source(file.path(code_dir, "01_generate_data.R"))
+source(file.path(code_dir, "02_plot_reward_schedule.R"))
+source(file.path(code_dir, "03_plot_param_distributions.R"))
+source(file.path(code_dir, "04_fit_stan.R"))
+source(file.path(code_dir, "05_diagnostics.R"))
+source(file.path(code_dir, "06_plot_recovery.R"))
+source(file.path(code_dir, "07_plot_population_posteriors.R"))
+source(file.path(code_dir, "08_summary_table.R"))
+source(file.path(code_dir, "09_write_report.R"))

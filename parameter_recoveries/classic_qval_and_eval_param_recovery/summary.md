@@ -235,3 +235,30 @@ same pattern — narrower `beta_per` priors leave less true between-subject sign
 recover. `alpha_per` improved too (0.321, its best result yet) but remains the weakest
 parameter in every run regardless of arm count or `beta_per`'s prior width, still pointing
 to some genuine identifiability difficulty specific to `alpha_per` in this model.
+
+## Refactor to the numbered pipeline and highbeta population (2026-11-02, branch `recovery/rl_per_high_beta`)
+
+### Where the earlier runs are
+All runs above were made with the old unnumbered scripts (`generate_data.R`, `fit_stan.R`, ...), which wrote
+straight into `artifacts/` and `output/`. Those scripts are in git history (last at commit `fe700b1` on main).
+Only the last run's files survived on disk; they were moved, not deleted, to `artifacts/legacy_n100_8arms/` and
+`output/legacy_n100_8arms/` (100 subjects, 8 arms, 200 trials, beta_per sigma 1.2).
+
+### New pipeline
+`main.R` now holds all run settings and sources `code/01_*.R` ... `code/09_*.R`, the same scripts as
+`classic_qval_and_perseveration_p50_param_recovery`. They are driven by the `population_params` table in
+`main.R`. Each run writes to `artifacts/<run_name>/` and `output/<run_name>/`, with fixed seeds
+(1001 / 2002 / 3003 / 4004, the same as classic_qval, so alpha_rl and beta_rl equal classic_qval's alpha and beta).
+New outputs: bias, OLS slope, 90% coverage, SD ratio, pairwise trade-offs (`08_tradeoffs.csv`), and an error figure:
+alpha_rl error vs true beta_rl and alpha_per error vs |true beta_per|. Word report and multi-page PDF from 09.
+
+### Design changes
+- Population: alpha_rl = plogis(N(0, 1.5)), beta_rl = exp(N(1, 0.5)), alpha_per = plogis(N(0, 1.5)), beta_per = N(0, 1.5).
+- Environment: 3 arms, 150 trials, p(win) = 0.5 for every arm (the same as classic_qval p50).
+- Stan priors aligned with qval_and_decay_eval: `mu_beta_rl` N(0, 1.5) -> N(0, 3) and all four `sigma_*` half-N(0, 2) -> half-N(0, 3).
+
+### sanity_n20_highbeta (20 subjects, 4 x 500 + 500)
+0 divergences, group Rhat <= 1.014 (4 of 8 above 1.01, expected at 500 + 500), group ESS_bulk >= 267. r: alpha_rl 0.97,
+beta_rl 0.83, alpha_per 0.55, beta_per 0.73. beta_per is compressed (slope 0.38) and biased (+0.71); beta_per_pop 0.70
+(true 0, covered by a wide interval). Expected for the frozen trace: E only moves toward 1, so all arms end up with
+similar E and the arm differences beta_per acts on shrink.

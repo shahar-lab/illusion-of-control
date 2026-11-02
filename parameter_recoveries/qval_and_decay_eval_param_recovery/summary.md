@@ -104,3 +104,28 @@ strongly as in the first run, with 0 divergences and full convergence at double 
 subject count. `alpha_per` (0.515) again lands well above `classic_qval_and_eval`'s best
 comparable result (0.321), reinforcing that the decaying-perseveration parameterization's
 identifiability advantage is not just a small-sample artifact of the first run.
+
+## Refactor to the numbered pipeline and highbeta population (2026-11-02, branch `recovery/rl_per_high_beta`)
+
+### Where the earlier runs are
+All runs above were made with the old unnumbered scripts (`generate_data.R`, `fit_stan.R`, ...), which wrote
+straight into `artifacts/` and `output/`. Those scripts are in git history (last at commit `fe700b1` on main).
+Only the last run's files survived on disk; they were moved, not deleted, to `artifacts/legacy_n200/` and
+`output/legacy_n200/` (200 subjects, 3 arms, 200 trials, the PI's widened-prior run).
+
+### New pipeline
+`main.R` now holds all run settings and sources `code/01_*.R` ... `code/09_*.R`, the same scripts as
+`classic_qval_and_perseveration_p50_param_recovery`. They are driven by the `population_params` table in
+`main.R`. Each run writes to `artifacts/<run_name>/` and `output/<run_name>/`, with fixed seeds
+(1001 / 2002 / 3003 / 4004, the same as classic_qval, so alpha_rl and beta_rl equal classic_qval's alpha and beta).
+New outputs: bias, OLS slope, 90% coverage, SD ratio, pairwise trade-offs (`08_tradeoffs.csv`), and an error figure:
+alpha_rl error vs true beta_rl and alpha_per error vs |true beta_per|. Word report and multi-page PDF from 09.
+
+### Design changes
+- Population: alpha_rl = plogis(N(0, 1.5)), beta_rl = exp(N(1, 0.5)), alpha_per = plogis(N(0, 1.5)), beta_per = N(0, 1.5).
+- Environment: 3 arms, 150 trials, p(win) = 0.5 for every arm (the same as classic_qval p50).
+
+### sanity_n20_highbeta (20 subjects, 4 x 500 + 500)
+0 divergences, group Rhat <= 1.010, group ESS_bulk >= 469. r: alpha_rl 0.95, beta_rl 0.80, alpha_per 0.26,
+beta_per 0.95. alpha_per is uninformative for agents with |beta_per| < 0.5 (90% intervals about 0.01 to 0.7); for
+|beta_per| >= 1 (9 agents) alpha_per r = 0.71. alpha_per_pop 0.29 (true 0.5, not covered), pulled down by those agents.

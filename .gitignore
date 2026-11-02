@@ -83,3 +83,5 @@ models/classic_qval_and_perseveration/classic_qval_and_perseveration.exe
 parameter_recoveries/classic_qval_and_perseveration_p50_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/qval_and_decay_eval_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_and_eval_param_recovery/artifacts/*/fit.rds
+models/classic_qval_and_eval/classic_qval_and_eval.exe
+models/qval_and_decay_eval/qval_and_decay_eval.exe
