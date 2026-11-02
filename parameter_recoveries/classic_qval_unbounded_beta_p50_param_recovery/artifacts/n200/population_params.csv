@@ -1,0 +1,3 @@
+param,mu,sigma,link
+alpha,0,1.5,inv_logit
+beta,3,1.5,identity

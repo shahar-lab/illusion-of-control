@@ -17,14 +17,14 @@ library(officer)
 library(flextable)
 
 # Run settings
-run_name      <- "n200"         # sanity_n20 | n35 | n200
+run_name      <- "n200_highbeta_walk3021"  # sanity_n20 | n35 | n200 | sanity_n20_highbeta (walk 2002) | sanity_n20_highbeta_walk3021 | n200_highbeta_walk3021
 Nsubjects     <- 200
 iter_warmup   <- 2000
 iter_sampling <- 3000
 
-# Seeds: identical across classic_qval_randomwalk and classic_qval_p50
+# Seeds: identical across classic_qval_randomwalk and classic_qval_p50, except seed_env (p50 does not use it)
 seed_params <- 1001
-seed_env    <- 2002
+seed_env    <- 3021  # random walk chosen by the researcher (balanced, several switches); 2002 in runs without a _walk suffix
 seed_sim    <- 3003
 seed_stan   <- 4004
 
@@ -37,9 +37,9 @@ environment_description <- "all arms offered every trial; p(win) per arm follows
 
 # Generating population (alpha = plogis(N(mu, sigma)), beta = exp(N(mu, sigma)))
 mu_alpha    <- 0
-sigma_alpha <- 0.85
-mu_beta     <- -0.25
-sigma_beta  <- 0.75
+sigma_alpha <- 1.5
+mu_beta     <- 1
+sigma_beta  <- 0.5
 
 project_root  <- here::here()
 folder_dir    <- file.path(project_root, "parameter_recoveries", "classic_qval_randomwalk_param_recovery")

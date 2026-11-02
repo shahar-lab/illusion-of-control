@@ -63,14 +63,16 @@ doc <- read_docx() |>
   body_add_img(file.path(output_dir, "07_population_posteriors.png"), width = 6.5, height = 3.9) |>
   caption(2, "Posterior densities of the population-level alpha (inv_logit(mu_alpha)) and beta (exp(mu_beta)) on the natural scale, with median and 80% / 90% credible intervals; the dashed red line marks the true generating value.") |>
   body_add_img(file.path(output_dir, "06_param_recovery.png"), width = 6.5, height = 3.25) |>
-  caption(3, "True versus recovered (posterior median) agent-level parameters. The red line is the OLS fit, the dashed grey line is the identity line, and r is Pearson's correlation.")
+  caption(3, "True versus recovered (posterior median) agent-level parameters. The red line is the OLS fit, the dashed grey line is the identity line, and r is Pearson's correlation.") |>
+  body_add_img(file.path(output_dir, "06_alpha_error_vs_beta.png"), width = 6.5, height = 4.6) |>
+  caption(4, "Alpha recovery error (posterior median minus true value) against the true beta, log scale. The red line is a loess smoother and the dashed grey line marks zero error.")
 
 print(doc, target = file.path(output_dir, "09_recovery_report.docx"))
 
 
 #### WRITE MULTI-PAGE PDF ####
 
-figure_files <- c("03_param_distributions_plot.rds", "07_population_posteriors_plot.rds", "06_param_recovery_plot.rds")
+figure_files <- c("03_param_distributions_plot.rds", "07_population_posteriors_plot.rds", "06_param_recovery_plot.rds", "06_alpha_error_vs_beta_plot.rds")
 
 pdf(file.path(output_dir, "09_recovery_figures.pdf"), width = 10, height = 8, onefile = TRUE)
 for (f in figure_files) {

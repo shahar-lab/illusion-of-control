@@ -77,3 +77,50 @@ All runs on the laptop (Windows), 4 chains; sanity 500 + 500, n35 and n200 2000 
 | sanity_n20 | 0.56 [0.34, 0.67] | 0.81 [0.40, 1.45] |
 | n35 | 0.55 [0.39, 0.66] | 0.68 [0.41, 1.05] |
 | n200 | 0.54 [0.49, 0.59] | 0.69 [0.59, 0.80] |
+
+## 5. Highbeta population (2026-11-01)
+
+The original beta population (exp(N(-0.25, 0.75)), median 0.73, 66% below 1) is close to random choice
+(Q is in [0, 1]), and alpha recovered poorly at low beta. New population, suggested by Ido Ben-Artzi:
+**mu_alpha = 0, sigma_alpha = 1.5; mu_beta = 1, sigma_beta = 0.5** (beta median 2.7, mean ~3.1, SD ~1.6;
+2% below 1). Model, priors, links, seeds and the 200-draw nesting are unchanged, so each subject keeps the
+same underlying z-scores as in sections 1-4. n35 was skipped. (The randomwalk sibling moved to a new walk,
+seed_env 3021; p50 does not use seed_env.)
+
+New figure: `06_alpha_error_vs_beta` (alpha posterior median - true vs true beta, log x, loess), figure 4 in the
+report and page 4 of the PDF.
+
+**Convergence**
+
+| Run | Divergences | Group max Rhat | Group min ESS_bulk | Subject max Rhat | Fit time (min) |
+|---|---|---|---|---|---|
+| sanity_n20_highbeta | 0 | 1.005 | 527 | 1.007 | 1.2 |
+| n200_highbeta | 0 | 1.003 | 1928 | 1.002 | 74.6 (in parallel with randomwalk n200) |
+
+**Subject-level recovery**
+
+| Run | alpha r | alpha slope | alpha 90% cov. | alpha SD ratio | beta r | beta slope | beta 90% cov. | alpha-beta error r |
+|---|---|---|---|---|---|---|---|---|
+| sanity_n20_highbeta | 0.97 | 0.93 | 0.95 | 0.96 | 0.85 | 0.79 | 0.90 | -0.42 |
+| n200_highbeta | 0.93 | 0.90 | 0.90 | 0.97 | 0.91 | 0.77 | 0.92 | -0.48 |
+
+**Population-level recovery** (natural scale; true alpha_pop = 0.50, beta_pop = exp(1) = 2.72)
+
+| Run | alpha_pop median [90% CI] | beta_pop median [90% CI] |
+|---|---|---|
+| sanity_n20_highbeta | 0.53 [0.34, 0.72] | 3.07 [2.30, 4.06] |
+| n200_highbeta | 0.51 [0.46, 0.56] | 2.70 [2.50, 2.91] |
+
+**Alpha by true beta** (n200; alpha r, mean alpha error)
+
+| beta | n200 (old population) | n200_highbeta |
+|---|---|---|
+| < 0.5 | n = 55: r 0.18, error 0.01 | none |
+| 0.5-1 | n = 78: r 0.44, error 0.05 | n = 4: r 0.96, error -0.16 |
+| 1-2 | n = 42: r 0.72, error 0.07 | n = 50: r 0.94, error -0.06 |
+| 2-4 | n = 20: r 0.71, error 0.07 | n = 102: r 0.93, error 0.02 |
+| >= 4 | n = 5: r 0.98, error -0.02 | n = 44: r 0.96, error 0.04 |
+
+With p = 0.5 on every arm, alpha goes from r 0.49 / slope 0.24 (old n200) to r 0.93 / slope 0.90.
+The remaining pattern: alpha is underestimated for beta below ~2 (loess error about -0.1 to -0.2 near beta = 1)
+and slightly overestimated around beta 3-6.

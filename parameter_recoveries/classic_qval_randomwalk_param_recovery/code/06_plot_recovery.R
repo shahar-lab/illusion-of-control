@@ -1,4 +1,4 @@
-# reads: artifacts/individual_params.csv, recovered_summary.csv · writes: output/06_param_recovery.{pdf,png}
+# reads: artifacts/individual_params.csv, recovered_summary.csv · writes: output/06_param_recovery.{pdf,png}, 06_alpha_error_vs_beta.{pdf,png}
 
 #### PLOT PARAMETER RECOVERY ####
 
@@ -41,3 +41,26 @@ plot_name <- "06_param_recovery"
 ggsave(file.path(output_dir, paste0(plot_name, ".pdf")), plot = fig, width = 10, height = 5, bg = "white")
 ggsave(file.path(output_dir, paste0(plot_name, ".png")), plot = fig, width = 10, height = 5, dpi = 300, bg = "white")
 write_rds(fig, file.path(artifacts_dir, "06_param_recovery_plot.rds"))
+
+
+#### ALPHA ERROR BY TRUE BETA ####
+
+alpha_error_df <- recovery_df |>
+  select(subject, param, true_val, recovered_val) |>
+  pivot_wider(names_from = param, values_from = c(true_val, recovered_val)) |>
+  mutate(alpha_error = recovered_val_alpha - true_val_alpha)
+
+fig_error <- ggplot(alpha_error_df, aes(x = true_val_beta, y = alpha_error)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
+  geom_point(colour = "#4477AA", alpha = 0.6, size = 1.8) +
+  geom_smooth(method = "loess", formula = y ~ x, se = FALSE, colour = "#EE6677", linewidth = 0.8) +
+  scale_x_log10() +
+  theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank()) +
+  labs(x = "True beta (log scale)", y = "Alpha error (posterior median - true)")
+
+plot_name <- "06_alpha_error_vs_beta"
+
+ggsave(file.path(output_dir, paste0(plot_name, ".pdf")), plot = fig_error, width = 7, height = 5, bg = "white")
+ggsave(file.path(output_dir, paste0(plot_name, ".png")), plot = fig_error, width = 7, height = 5, dpi = 300, bg = "white")
+write_rds(fig_error, file.path(artifacts_dir, "06_alpha_error_vs_beta_plot.rds"))
