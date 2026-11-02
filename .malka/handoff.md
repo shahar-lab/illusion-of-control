@@ -35,9 +35,10 @@ Results (all clean: 0 divergences, group Rhat <= 1.003):
   Bin numbers come from a scratchpad script (`beta_bins.R`, not in repo).
 
 Open items (ask the researcher):
-- Commit 98f08cb accidentally committed both unbounded fit.rds files (73 MB each; the .gitignore only covered the
-  old folders). 479f0d8 untracks and gitignores them, but the blobs are in the pushed branch history. Before
-  merging, either squash/rewrite the branch (force-push to this feature branch) or accept ~145 MB in history.
+- Resolved 2026-11-02: the unbounded run commit had pushed both fit.rds files (73 MB each). With the researcher's OK
+  the last three commits were rewritten without them (98f08cb/479f0d8/20521e4 -> 142db42/b91e854/55f3b42) and
+  force-pushed. Local backup branch `backup/classic-qval-highbeta-pre-rewrite` keeps the old tip; delete it once
+  nothing else references the old commits.
 - Should the old randomwalk n35/n200 (walk 2002) be rerun on walk 3021 for a clean environment comparison? Not asked for.
 - The unbounded population has 10.5% of agents with beta < 1. Whether that is realistic is a question for the pilot fits.
 
