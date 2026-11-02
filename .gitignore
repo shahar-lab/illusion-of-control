@@ -75,3 +75,6 @@ parameter_recoveries/classic_qval_randomwalk_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_p50_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_unbounded_beta_randomwalk_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_unbounded_beta_p50_param_recovery/artifacts/*/fit.rds
+
+# R default graphics device output
+Rplots.pdf
