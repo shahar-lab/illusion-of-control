@@ -120,3 +120,12 @@ Bins with fewer than ~10 agents are noisy. Figure: `output/<run>/06_alpha_error_
 * **beta** is slightly compressed in all new runs (slope 0.77-0.86, mean bias -0.03 to -0.13), and 90% coverage of
   subject beta is 0.85-0.86 in the randomwalk runs (0.91-0.92 in p50).
 * The 90% intervals cover the true population values in all six n200 runs.
+
+## Open questions (moved from `.malka/handoff.md`, 2026-11-09)
+* Rerun the old randomwalk n35 / n200 on walk 3021 for a clean environment comparison? Not asked for.
+* The unbounded population has 10.5% of agents with beta < 1. Whether that is realistic is for the pilot fits.
+* Plot `.rds` files in `artifacts/<run>/` (03/06/07 `_plot.rds`, read by 09) are 5-7 MB each, about 40 MB per run,
+  because ggplot objects carry their environments. Candidates: gitignore them or slim what 09 needs.
+* Cosmetic: 07 has no legend for true (blue dotted) vs median (grey dashed); 06 ticks fall at odd values; docx tables
+  show raw column names; docx/PDF figure order is 03, 07, 06.
+* Local branch `backup/classic-qval-highbeta-pre-rewrite` (pre-rewrite tip with the 73 MB fit.rds files) can be deleted.

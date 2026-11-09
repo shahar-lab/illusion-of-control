@@ -262,3 +262,32 @@ alpha_rl error vs true beta_rl and alpha_per error vs |true beta_per|. Word repo
 beta_rl 0.83, alpha_per 0.55, beta_per 0.73. beta_per is compressed (slope 0.38) and biased (+0.71); beta_per_pop 0.70
 (true 0, covered by a wide interval). Expected for the frozen trace: E only moves toward 1, so all arms end up with
 similar E and the arm differences beta_per acts on shrink.
+
+### n200_highbeta (200 subjects, 4 x 2000 + 3000)
+Runtime 648 min (run in parallel with two other n200 fits on 14 cores). 0 divergences, 0 treedepth hits, group Rhat
+<= 1.004, group ESS_bulk >= 1330.
+
+| param | r | slope | bias | 90% coverage |
+|---|---|---|---|---|
+| alpha_rl  | 0.92 | 0.87 | 0.01 | 0.89 |
+| beta_rl   | 0.91 | 0.82 | -0.17 | 0.90 |
+| alpha_per | 0.23 | 0.10 | -0.01 | 0.97 |
+| beta_per  | 0.71 | 0.54 | -0.08 | 0.93 |
+
+Population: all four true values inside the 90% intervals (beta_per_pop -0.00, true 0; alpha_per_pop 0.48 with a wide
+interval 0.33-0.66). Trade-offs: alpha_rl / beta_rl error cor -0.51; the rest |cor| <= 0.19.
+
+Recovery by bin (r, 90% coverage):
+
+| abs(beta_per) | n | alpha_per r | alpha_per cov | beta_per r | beta_per cov |
+|---|---|---|---|---|---|
+| <= 0.5  | 64 | -0.03 | 0.95 | 0.32 | 0.98 |
+| 0.5-1   | 42 | 0.05  | 0.95 | 0.49 | 1.00 |
+| 1-2     | 53 | 0.20  | 0.98 | 0.77 | 0.94 |
+| > 2     | 41 | 0.66  | 1.00 | 0.83 | 0.76 |
+
+alpha_rl r >= 0.91 in every beta_rl bin, so the highbeta population fixes alpha_rl here as well (old runs 0.44-0.62).
+alpha_per stays unrecoverable except for the strongest perseverators: its high coverage is the prior coming back, not
+information. beta_per is shrunk toward 0 (slope 0.54) and under-covered for abs(beta_per) > 2. Both follow from the frozen
+trace: unchosen arms never decay, so E differences between arms stay small. Compare `qval_and_decay_eval`, where the
+same population gives alpha_per r 0.59 and beta_per r 0.93. Bin numbers come from a scratchpad script (not in repo).

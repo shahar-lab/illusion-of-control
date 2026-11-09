@@ -16,6 +16,15 @@ R + Stan (cmdstanr) computational modeling for the "illusion of control" / uncon
 - Compile-check an edited `.stan` file before a full run: `<cmdstan_path>/bin/stanc --o=<tmp>.hpp models/<model>/<model>.stan`.
 - Exception: scripts in `analysis/param_estimation/` use paths relative to their own folder (`../../data/...`) and `rstan`, so run them with that folder as the working directory.
 
+### Local Windows environment (the researcher's laptop)
+- R 4.6.1 at `C:\Program Files\R\R-4.6.1` (not on PATH; call `Rscript.exe` by full path). Rtools 4.5 at `C:\rtools45`.
+- Packages in `C:\Users\alonk\R\win-library\4.6` via the user env var `R_LIBS_USER` (the Claude desktop app redirects AppData writes into its sandbox, so the default `%LOCALAPPDATA%\R` library is invisible to RStudio).
+- cmdstanr 0.9.0, CmdStan 2.40.0 at `C:\Users\alonk\.cmdstan\cmdstan-2.40.0`. Spaces in the repo path are fine.
+- Smart App Control is off and Defender has a folder exclusion for `models/`; both are needed for compiled model `.exe` files to run (Defender flags them as a false-positive trojan).
+- Two runs of the same model cannot start at the same instant: cmdstanr locks the model `.exe` (system error 32). Start the second once the first is sampling.
+- Screen-off triggers Modern Standby, which pauses fits; keep screen/sleep at Never during long runs.
+- `Rscript -e` with `|` breaks under cmd; put code in a script file.
+
 ## Architecture
 
 **One model, one folder.** `models/<model_name>/` holds `<model_name>.stan` (hierarchical fit) and `<model_name>.R` (defines `sim.block(subject, parameters, cfg)`, the trial-by-trial simulator that must implement the same choice/update rule as the Stan model). Compiled binaries land next to the `.stan` file and must be gitignored per model.
@@ -41,7 +50,7 @@ R + Stan (cmdstanr) computational modeling for the "illusion of control" / uncon
 - `simulations/`: exploratory model simulations with `figs/`.
 - `functions/` + `stan_modeling/`: an older workflow built around `my_starter.R`/`set_workingmodel()`. Legacy; new work uses the `models/` + `parameter_recoveries/` layout.
 - `archive/`: retired code, do not extend.
-- `.malka/`: `current_job.md` and `handoff.md` hold the state of in-progress work (decisions made with the researcher, next steps). Read `handoff.md` before continuing a multi-session task.
+- `.malka/`: `current_job.md` and `handoff.md` (when present) hold the state of in-progress work (decisions made with the researcher, next steps). Read `handoff.md` before continuing a multi-session task.
 
 ## Naming and style
 

@@ -129,3 +129,30 @@ alpha_rl error vs true beta_rl and alpha_per error vs |true beta_per|. Word repo
 0 divergences, group Rhat <= 1.010, group ESS_bulk >= 469. r: alpha_rl 0.95, beta_rl 0.80, alpha_per 0.26,
 beta_per 0.95. alpha_per is uninformative for agents with |beta_per| < 0.5 (90% intervals about 0.01 to 0.7); for
 |beta_per| >= 1 (9 agents) alpha_per r = 0.71. alpha_per_pop 0.29 (true 0.5, not covered), pulled down by those agents.
+
+### n200_highbeta (200 subjects, 4 x 2000 + 3000)
+Runtime 736 min (run in parallel with two other n200 fits on 14 cores). 0 divergences, 0 treedepth hits, group Rhat
+<= 1.009, group ESS_bulk >= 1018.
+
+| param | r | slope | bias | 90% coverage |
+|---|---|---|---|---|
+| alpha_rl  | 0.91 | 0.84 | 0.01 | 0.89 |
+| beta_rl   | 0.86 | 0.69 | -0.15 | 0.86 |
+| alpha_per | 0.59 | 0.42 | 0.00 | 0.90 |
+| beta_per  | 0.93 | 0.86 | -0.01 | 0.91 |
+
+Population: all four true values inside the 90% intervals (alpha_per_pop 0.49, true 0.5; beta_per_pop 0.08, true 0).
+Trade-offs: alpha_rl / beta_rl error cor -0.51; beta_rl / beta_per -0.22; the rest |cor| <= 0.15.
+
+Recovery by bin (r, 90% coverage):
+
+| abs(beta_per) | n | alpha_per r | alpha_per cov | beta_per r |
+|---|---|---|---|---|
+| <= 0.5  | 64 | 0.14 | 0.89 | 0.71 |
+| 0.5-1   | 42 | 0.65 | 0.93 | 0.88 |
+| 1-2     | 53 | 0.76 | 0.83 | 0.89 |
+| > 2     | 41 | 0.93 | 0.98 | 0.98 |
+
+alpha_rl by beta_rl: r 0.46 for beta_rl <= 1 (4 agents), 0.89-0.96 above. The highbeta population fixes alpha_rl
+(old runs 0.52-0.57). alpha_per is recoverable once abs(beta_per) > 0.5; below that, perseveration does not affect
+choices and its learning rate is not defined by the data. Bin numbers come from a scratchpad script (not in repo).
