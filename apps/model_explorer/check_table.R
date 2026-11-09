@@ -4,6 +4,7 @@ library(tidyverse)
 library(here)
 
 source(here("apps", "model_explorer", "helpers.R"))
+source(here("apps", "model_explorer", "wsls.R"))
 
 sim_funs = map(set_names(names(model_specs)), load_model)
 
@@ -54,6 +55,25 @@ check_case = function(cs) {
   } else {
     ok = c(ok, report(paste(tag, "E1-E3 == sim.block E_cards"), identical(cols("E"), rows("E_cards"))))
     logits = cs$params[["beta_rl"]] * Q + cs$params[["beta_per"]] * cols("E")
+  }
+
+  w      = fit_wsls(full)
+  ch     = full$ch_card
+  stay   = as.numeric(ch[-1] == ch[-length(ch)])
+  rprev  = full$reward[-nrow(full)] - 0.5
+  rates  = tapply(stay, rprev, mean)
+  b_lpm  = unname(c(mean(rates), diff(rates)))
+  b_lgt  = unname(c(mean(qlogis(rates)), diff(qlogis(rates))))
+  ok = c(ok,
+    report(paste(tag, "WSLS uses the same 150-trial agent (trials 2-150)"),
+           identical(w$data$trial, 2:150) && identical(w$data$stay, stay) && identical(w$data$rew_prev, rprev)),
+    report(paste(tag, "WSLS linear b0/b1 == mean / diff of stay rates"),
+           isTRUE(all.equal(unname(coef(w$lpm)), b_lpm, tolerance = 1e-10))),
+    report(paste(tag, "WSLS logistic b0/b1 == mean / diff of logit stay rates"),
+           w$separation || isTRUE(all.equal(unname(coef(w$lgt)), b_lgt, tolerance = 1e-6)))
+  )
+  if (cs$model == "classic_qval_and_perseveration") {
+    ok = c(ok, report(paste(tag, "WSLS stay == sim.block stay column"), identical(w$data$stay, full$stay[-1])))
   }
 
   p_re = t(apply(logits, 1, softmax))
