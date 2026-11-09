@@ -5,8 +5,10 @@ library(here)
 
 source(here("apps", "model_explorer", "helpers.R"))
 source(here("apps", "model_explorer", "wsls.R"))
+source(here("apps", "model_explorer", "sweep.R"))
 
 sim_funs = map(set_names(names(model_specs)), load_model)
+sim_fast = map(set_names(names(model_specs)), load_model_fast)
 
 report = function(label, ok) {
   cat(sprintf("%-4s %s\n", if (ok) "PASS" else "FAIL", label))
@@ -75,6 +77,12 @@ check_case = function(cs) {
   if (cs$model == "classic_qval_and_perseveration") {
     ok = c(ok, report(paste(tag, "WSLS stay == sim.block stay column"), identical(w$data$stay, full$stay[-1])))
   }
+
+  cfg  = list(Narms = 3, Ntrials = 150, expvalues = matrix(rep(cs$pwin, 150), nrow = 3))
+  set.seed(cs$seed)
+  fast = sim_fast[[cs$model]](1, cs$params, cfg)
+  ok = c(ok, report(paste(tag, "sweep fast path == sim.block (150 choices, rewards)"),
+                    identical(fast$ch_card, full$ch_card) && identical(fast$reward, full$reward) && identical(fast$trial, full$trial)))
 
   p_re = t(apply(logits, 1, softmax))
   ok = c(ok, report(paste(tag, "softmax(table Q/E/kappa) == p1-p3"), isTRUE(all.equal(p_re, cols("p"), tolerance = 1e-12))))
