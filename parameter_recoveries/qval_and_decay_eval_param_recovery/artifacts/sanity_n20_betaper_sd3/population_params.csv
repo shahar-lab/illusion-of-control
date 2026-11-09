@@ -1,0 +1,5 @@
+param,mu,sigma,link
+alpha_rl,0,1.5,inv_logit
+beta_rl,1,0.5,exp
+alpha_per,0,1.5,inv_logit
+beta_per,0,3,identity

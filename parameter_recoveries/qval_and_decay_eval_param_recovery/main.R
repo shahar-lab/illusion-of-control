@@ -17,10 +17,10 @@ library(officer)
 library(flextable)
 
 # Run settings
-run_name      <- "n200_highbeta"              # legacy_* (old pipeline) | sanity_n20_highbeta | n200_highbeta
-Nsubjects     <- 200
-iter_warmup   <- 2000
-iter_sampling <- 3000
+run_name      <- "sanity_n20_betaper_sd3"      # legacy_* (old pipeline) | sanity_n20_highbeta | n200_highbeta | sanity_n20_betaper_sd3 | n200_betaper_sd3
+Nsubjects     <- 20
+iter_warmup   <- 500
+iter_sampling <- 500
 
 # Seeds: identical to the classic_qval recoveries, so alpha_rl and beta_rl match classic_qval's alpha and beta
 seed_params <- 1001
@@ -41,7 +41,7 @@ population_params <- tribble(
   "alpha_rl",  0,   1.5,    "inv_logit",
   "beta_rl",   1,   0.5,    "exp",
   "alpha_per", 0,   1.5,    "inv_logit",
-  "beta_per",  0,   1.5,    "identity"
+  "beta_per",  0,   3,      "identity"
 )
 
 # Error figure: error in `target` against the true value of `by` (|by| when by_abs)
