@@ -156,3 +156,48 @@ Recovery by bin (r, 90% coverage):
 alpha_rl by beta_rl: r 0.46 for beta_rl <= 1 (4 agents), 0.89-0.96 above. The highbeta population fixes alpha_rl
 (old runs 0.52-0.57). alpha_per is recoverable once abs(beta_per) > 0.5; below that, perseveration does not affect
 choices and its learning rate is not defined by the data. Bin numbers come from a scratchpad script (not in repo).
+
+## Wider beta_per: N(0, 1.5) -> N(0, 3) (2026-11-10)
+
+### Why
+The perseveration push on the previous choice is about beta_per * alpha_per (E of the last choice minus the mean E
+of the other arms is about alpha_per). With N(0, 1.5) its median absolute size was 0.42, already on the scale of the
+well-recovered kappa N(0, 0.5) (0.34), but alpha_per recovered only where the push was > 0.5. N(0, 3) doubles the push
+(median about 0.84, close to the pilot-like kappa SD of about 1). Everything else as n200_highbeta. Model unchanged.
+The same rescaling does not work for `classic_qval_and_eval`: its frozen E saturates near 1 for every tried arm, so
+the push there is about 0.02 whatever beta_per is.
+
+### sanity_n20_betaper_sd3 (20 subjects, 4 x 500 + 500)
+0 divergences, group Rhat <= 1.009 (ESS_bulk >= 222, expected at 500 draws). r: alpha_rl 0.86, beta_rl 0.89,
+alpha_per 0.57 (0.26 in sanity_n20_highbeta), beta_per 0.98.
+
+### n200_betaper_sd3 (200 subjects, 4 x 2000 + 3000)
+0 divergences, 0 treedepth hits, group Rhat <= 1.003, group ESS_bulk >= 907. All four population values inside the
+90% intervals.
+
+| param | r (highbeta) | r (betaper_sd3) | slope (sd3) | 90% coverage (sd3) |
+|---|---|---|---|---|
+| alpha_rl  | 0.91 | 0.86 | 0.75 | 0.93 |
+| beta_rl   | 0.86 | 0.77 | 0.55 | 0.88 |
+| alpha_per | 0.59 | 0.71 | 0.57 | 0.89 |
+| beta_per  | 0.93 | 0.97 | 0.94 | 0.90 |
+
+alpha_per r by push size abs(beta_per * alpha_per):
+
+| push | <= 0.25 | 0.25-0.5 | 0.5-1 | 1-2 | > 2 |
+|---|---|---|---|---|---|
+| highbeta (n) | 0.21 (81) | 0.26 (43) | 0.65 (34) | 0.80 (33) | 0.50 (9) |
+| betaper_sd3 (n) | 0.14 (55) | 0.54 (26) | 0.75 (43) | 0.88 (34) | 0.56 (42) |
+
+RL recovery by abs(beta_per) in betaper_sd3:
+
+| abs(beta_per) | <= 1 | 1-2 | 2-4 | > 4 |
+|---|---|---|---|---|
+| beta_rl r | 0.83 | 0.90 | 0.81 | 0.75 |
+| alpha_rl r | 0.93 | 0.91 | 0.90 | 0.67 |
+
+The wider beta_per buys alpha_per (0.59 -> 0.71) and beta_per (0.93 -> 0.97), and costs the RL part (beta_rl
+0.86 -> 0.77, alpha_rl 0.91 -> 0.86). The cost comes from the strongest perseverators: with abs(beta_per) > 4, choices
+are mostly driven by choice history and alpha_rl falls to 0.67. alpha_per recovers best at a push of 0.5-2. Above 2 r drops
+again, because a push that large needs alpha_per near 1, where E is the last choice only and alpha_per has little
+range left. Bin numbers come from a scratchpad script (not in repo).
