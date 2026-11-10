@@ -65,10 +65,10 @@ plot_sweep = function(sw, x, y, colour, current, baseline, xlab, ylab, colour_la
     geom_hline(yintercept = baseline, linetype = "dashed", colour = "grey55") +
     pts +
     geom_smooth(method = "loess", formula = y ~ x, se = FALSE, colour = "black", linewidth = 0.8) +
-    annotate("point", x = current$x, y = current$y, shape = 23, size = 4.5, fill = "#f1c40f", colour = "black") +
+    (if (!is.na(current$y)) annotate("point", x = current$x, y = current$y, shape = 23, size = 4.5, fill = "#f1c40f", colour = "black")) +
     scale_colour_viridis_c(limits = c(0, 1), option = "plasma", end = 0.9) +
     labs(x = xlab, y = ylab, colour = colour_lab,
-         caption = "Dashed: no-perseveration baseline. Black: loess. Diamond: the agent in the table.") +
+         caption = if (is.na(current$y)) "Dashed: no-perseveration baseline. Black: loess." else "Dashed: no-perseveration baseline. Black: loess. Diamond: the agent in the table.") +
     theme_minimal(base_size = 13) +
     theme(legend.position = "right")
 }

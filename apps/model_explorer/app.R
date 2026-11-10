@@ -92,7 +92,7 @@ ui = fluidPage(
         class = "sweep",
         h4("Parameter sweep: b0 vs perseveration parameter, b1 vs beta_rl"),
         p(class = "note", paste(
-          "Each agent is a fresh 150-trial sim.block() run with the sidebar's model, parameters and p(win);",
+          "Each agent is a fresh 150-trial sim.block() run of the sweep model, with that model's sidebar parameters and p(win);",
           "only the swept parameters are redrawn uniformly from the ranges below. Nothing is saved."
         )),
         fluidRow(
@@ -105,9 +105,11 @@ ui = fluidPage(
             sliderInput("rl_range", "beta / beta_rl range", min = 0, max = 12, value = c(0.1, 8), step = 0.1)
           ),
           column(3,
+            selectInput("sweep_model", "Sweep model", choices = model_choices),
+            div(class = "eta", textOutput("sweep_fixed", inline = TRUE)),
             radioButtons("sweep_scale", "Regression", c("linear", "logistic"), inline = TRUE),
             conditionalPanel(
-              "input.model != 'classic_qval_and_perseveration'",
+              "input.sweep_model != 'classic_qval_and_perseveration'",
               radioButtons("b0_x", "b0 plotted against", c("beta_per" = "beta_per", "beta_per x alpha_per" = "persev_x_alpha"), inline = TRUE)
             )
           ),
@@ -133,12 +135,16 @@ server = function(input, output, session) {
     updateNumericInput(session, "seed", value = sample.int(1e6, 1))
   })
 
-  params = reactive({
-    names = names(model_specs[[input$model]]$params)
-    vals  = map_dbl(names, \(p) input[[paste0(input$model, "__", p)]])
+  model_params = function(model) {
+    names = names(model_specs[[model]]$params)
+    vals  = map_dbl(names, \(p) input[[paste0(model, "__", p)]] %||% NA_real_)
     req(all(!is.na(vals)))
     set_names(vals, names)
-  })
+  }
+
+  params = reactive(model_params(input$model))
+
+  observeEvent(input$model, updateSelectInput(session, "sweep_model", selected = input$model))
 
   pwin = reactive({
     p = c(input$pwin1, input$pwin2, input$pwin3)
@@ -194,9 +200,9 @@ server = function(input, output, session) {
   ))
 
   sweep = eventReactive(input$run_sweep, {
-    model  = input$model
+    model  = input$sweep_model
     roles  = sweep_roles[[model]]
-    params = params()
+    params = model_params(model)
     t0 = Sys.time()
 
     withProgress(message = "Running sweep", value = 0, {
@@ -217,7 +223,7 @@ server = function(input, output, session) {
     }
 
     list(
-      model = model, roles = roles, params = params, b0 = b0, b1 = b1, coefs = wsls()$coefs,
+      model = model, roles = roles, params = params, b0 = b0, b1 = b1, coefs = if (model == input$model) wsls()$coefs else NULL,
       secs  = as.numeric(difftime(Sys.time(), t0, units = "secs"))
     )
   })
@@ -229,7 +235,20 @@ server = function(input, output, session) {
             model_specs[[sw$model]]$label, nrow(sw$b0) + nrow(sw$b1), sw$secs, nsep)
   })
 
+  output$sweep_fixed = renderText({
+    model = input$sweep_model
+    roles = sweep_roles[[model]]
+    p     = model_params(model)
+    held  = \(swept) {
+      h = p[!names(p) %in% swept]
+      paste(names(h), "=", h, collapse = ", ")
+    }
+    sprintf("b0 sweep holds %s; b1 sweep holds %s (sidebar values for this model).",
+            held(c(roles$persev, roles$persev_alpha)), held(c(roles$rl, roles$rl_alpha)))
+  })
+
   current_coef = function(sw, term) {
+    if (is.null(sw$coefs)) return(NA_real_)
     sw$coefs |> filter(model == input$sweep_scale, .data$term == !!term) |> pull(estimate)
   }
 
