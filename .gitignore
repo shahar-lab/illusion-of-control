@@ -85,3 +85,7 @@ parameter_recoveries/qval_and_decay_eval_param_recovery/artifacts/*/fit.rds
 parameter_recoveries/classic_qval_and_eval_param_recovery/artifacts/*/fit.rds
 models/classic_qval_and_eval/classic_qval_and_eval.exe
 models/qval_and_decay_eval/qval_and_decay_eval.exe
+models/decay_eval_only/decay_eval_only.exe
+parameter_recoveries/decay_eval_only_param_recovery/artifacts/*/fit.rds
+models/eval_only/eval_only.exe
+parameter_recoveries/eval_only_param_recovery/artifacts/*/fit.rds

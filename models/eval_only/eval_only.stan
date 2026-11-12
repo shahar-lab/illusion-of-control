@@ -33,8 +33,8 @@ model {
   mu_alpha_per ~ normal(0, 3);
   mu_beta_per  ~ normal(0, 3);
 
-  sigma_alpha_per ~ normal(0, 2);
-  sigma_beta_per  ~ normal(0, 2);
+  sigma_alpha_per ~ normal(0, 3);
+  sigma_beta_per  ~ normal(0, 3);
 
   alpha_per_raw ~ normal(0, 1);
   beta_per_raw  ~ normal(0, 1);
