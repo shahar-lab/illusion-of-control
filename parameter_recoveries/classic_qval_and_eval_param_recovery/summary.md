@@ -291,3 +291,36 @@ alpha_per stays unrecoverable except for the strongest perseverators: its high c
 information. beta_per is shrunk toward 0 (slope 0.54) and under-covered for abs(beta_per) > 2. Both follow from the frozen
 trace: unchosen arms never decay, so E differences between arms stay small. Compare `qval_and_decay_eval`, where the
 same population gives alpha_per r 0.59 and beta_per r 0.93. Bin numbers come from a scratchpad script (not in repo).
+
+### n200_betaper_sd2 (200 subjects, 4 x 2000 + 3000)
+Same as n200_highbeta except beta_per = N(0, 2) (was N(0, 1.5)); branch `recovery/eval_betaper_sd2_t400`.
+
+Runtime 110 min end-to-end (fit 107.9 min; new desktop, Intel Core Ultra 7 270K, in parallel with the eval_only and
+qval_and_decay_eval fits). 0 divergences, 0 treedepth hits, group Rhat <= 1.006, group ESS_bulk >= 1026. All four
+population values inside the 90% intervals (alpha_rl_pop 0.52, true 0.5; beta_rl_pop 2.66, true 2.72; alpha_per_pop
+0.50, true 0.5, interval 0.36-0.65; beta_per_pop 0.06, true 0).
+
+| param | r (n200_highbeta) | r | slope | bias | 90% coverage |
+|---|---|---|---|---|---|
+| alpha_rl  | 0.92 | 0.91 | 0.84 | 0.01 | 0.92 |
+| beta_rl   | 0.91 | 0.90 | 0.75 | -0.16 | 0.91 |
+| alpha_per | 0.23 | 0.31 | 0.20 | 0.01 | 0.98 |
+| beta_per  | 0.71 | 0.78 | 0.66 | -0.05 | 0.95 |
+
+Trade-offs: alpha_rl / beta_rl error cor -0.44; the rest |cor| <= 0.19.
+
+alpha_per by push size abs(beta_per * alpha_per):
+
+| push | <= 0.25 | 0.25-0.5 | 0.5-1 | 1-2 | > 2 |
+|---|---|---|---|---|---|
+| r (n) | 0.04 (70) | 0.21 (32) | 0.31 (48) | 0.31 (29) | -0.21 (21) |
+| coverage | 0.99 | 0.97 | 1.00 | 0.93 | 1.00 |
+
+By abs(beta_per): alpha_per r -0.23 below 0.5, -0.03 for 0.5-1, 0.36 for 1-2, 0.71 above 2. alpha_rl r by beta_rl:
+0.88 (n 4) for <= 1, 0.86 (50) for 1-2, 0.94 (102) for 2-4, 0.97 (44) above 4 (coverage 0.84 there).
+
+The wider beta_per population helps beta_per (0.71 -> 0.78) and alpha_per a little (0.23 -> 0.31), and leaves the RL
+side unchanged. alpha_per is still unrecoverable at every nominal push size: r stays <= 0.31 with coverage near 1,
+i.e. the prior coming back. The nominal push beta_per * alpha_per overstates the real one here, because the frozen trace
+keeps arm differences in E small; only abs(beta_per) > 2 gives alpha_per r 0.71, as in n200_highbeta (0.66).
+Bin numbers come from a scratchpad script (not in repo).
