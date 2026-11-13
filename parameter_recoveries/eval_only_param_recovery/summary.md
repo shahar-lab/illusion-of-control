@@ -100,3 +100,33 @@ recovery improved too (0.57 -> 0.68). This is consistent with the earlier diverg
 convergence being driven at least partly by `beta_per`'s narrow true population spread
 (sigma=0.5) rather than a purely structural identifiability problem — though `alpha_per`
 is still recovering weakly even now, so some real difficulty estimating it likely remains.
+
+### n200_betaper_sd2 (200 subjects, 4 x 2000 + 3000)
+Numbered pipeline (`main.R` + `code/01..09`), same design as `decay_eval_only` n200_betaper_sd2: alpha_per =
+plogis(N(0, 1.5)), beta_per = N(0, 2), 3 arms, 150 trials, p(win) = 0.5, seeds 1001 / 2002 / 3003 / 4004, so both
+models were fit to agents with identical true parameters. The second run above is in `artifacts/legacy_n100/`.
+
+Runtime 47 min end-to-end (fit 45.7 min; new desktop, Intel Core Ultra 7 270K, in parallel with the
+qval_and_decay_eval and classic_qval_and_eval fits). 0 divergences, 0 treedepth hits, group Rhat <= 1.002, group
+ESS_bulk >= 1747. Both population values inside the 90% intervals (alpha_per_pop 0.53, true 0.5; beta_per_pop 0.07,
+true 0).
+
+| param | r (legacy_n100) | r | slope | bias | 90% coverage |
+|---|---|---|---|---|---|
+| alpha_per | 0.11 | 0.39 | 0.16 | 0.03 | 0.90 |
+| beta_per  | 0.68 | 0.82 | 0.63 | 0.04 | 0.91 |
+
+alpha_per r by push size abs(beta_per * alpha_per) (90% coverage in brackets):
+
+| push | <= 0.25 | 0.25-0.5 | 0.5-1 | 1-2 | > 2 |
+|---|---|---|---|---|---|
+| r (n) | 0.31 (61) | -0.09 (36) | 0.45 (43) | 0.51 (44) | 0.40 (16) |
+| coverage | 0.84 | 0.92 | 0.98 | 0.91 | 0.88 |
+
+By abs(beta_per): alpha_per r -0.07 below 0.5, 0.43 for 0.5-1, 0.32 for 1-2, 0.65 above 2.
+
+Same agents, very different result from `decay_eval_only` (alpha_per 0.70, beta_per 0.97; alpha_per r 0.81-0.91 for
+push 0.5-2). Here alpha_per stays weak in every push bin and its slope of 0.16 means the estimates are mostly pulled
+to the population mean, while coverage stays nominal, so the posteriors are wide but honest. With unchosen arms
+frozen, the trace soon carries little information about alpha_per however strong the push, which confirms that the
+frozen trace, not the population, limits alpha_per. Bin numbers come from a scratchpad script (not in repo).
