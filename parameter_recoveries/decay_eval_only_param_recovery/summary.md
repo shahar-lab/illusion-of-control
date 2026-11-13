@@ -98,3 +98,40 @@ run (0.806 -> 0.571 here), so this shouldn't be over-read as guaranteed to hold 
 scale/prior setting, but the qualitative conclusion stands: decaying unchosen arms back
 toward baseline gives the perseveration learning rate substantially more identifiability
 than freezing them.
+
+## Refactor to the numbered pipeline and beta_per N(0, 2) (2026-11-12/13, branch `recovery/eval_betaper_sd2_t400`)
+
+### Where the earlier runs are
+The runs above used the old unnumbered scripts (`generate_data.R`, `fit_stan.R`, ...), which wrote straight into
+`artifacts/` and `output/`; those scripts are in git history before commit `ed69c19`. The last run's files (100
+subjects, 3 arms, 200 trials) were moved unchanged to `artifacts/legacy_n100/` and `output/legacy_n100/`.
+
+### New pipeline and design
+`main.R` holds all run settings and sources `code/01_*.R` ... `code/09_*.R`, the same scripts as the other recoveries
+(`qval_and_decay_eval`, `classic_qval_and_perseveration_p50`). Each run writes to `artifacts/<run_name>/` and
+`output/<run_name>/`, with seeds 1001 / 2002 / 3003 / 4004.
+- Population: alpha_per = plogis(N(0, 1.5)), beta_per = N(0, 2) (was plogis(N(0, 0.75)) and N(0, 1.2)).
+  The perseveration push on the previous choice is about beta_per * alpha_per; alpha_per needs a push of about 0.5-2
+  to be identifiable (see `qval_and_decay_eval_param_recovery/summary.md`). N(0, 2) keeps abs(beta_per) mostly within 4.
+- Environment: 3 arms, 150 trials, p(win) = 0.5 for every arm (as in the pilot task).
+- Stan priors aligned with the sibling models: `sigma_*` half-N(0, 2) -> half-N(0, 3).
+
+### n200_betaper_sd2 (200 subjects, 4 x 2000 + 3000)
+Runtime 194 min (in parallel with the qval_and_decay_eval fit). 0 divergences, 0 treedepth hits, group Rhat <= 1.003,
+group ESS_bulk >= 695. Both population values inside the 90% intervals (alpha_per_pop 0.46, true 0.5; beta_per_pop
+0.02, true 0).
+
+| param | r (legacy_n100) | r | slope | bias | 90% coverage |
+|---|---|---|---|---|---|
+| alpha_per | 0.57 | 0.70 | 0.64 | -0.05 | 0.94 |
+| beta_per  | 0.96 | 0.97 | 0.93 | 0.01 | 0.98 |
+
+alpha_per r by push size abs(beta_per * alpha_per):
+
+| push | <= 0.25 | 0.25-0.5 | 0.5-1 | 1-2 | > 2 |
+|---|---|---|---|---|---|
+| r (n) | 0.07 (61) | 0.27 (36) | 0.81 (43) | 0.91 (44) | 0.70 (16) |
+
+By abs(beta_per): alpha_per r 0.26 below 0.5, 0.76 for 0.5-1, 0.90-0.94 above 1. Same pattern as qval_and_decay_eval:
+alpha_per is recoverable for agents whose perseveration actually moves choices, and undefined for those near 0.
+Bin numbers come from a scratchpad script (not in repo).
