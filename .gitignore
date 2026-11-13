@@ -89,3 +89,6 @@ models/decay_eval_only/decay_eval_only.exe
 parameter_recoveries/decay_eval_only_param_recovery/artifacts/*/fit.rds
 models/eval_only/eval_only.exe
 parameter_recoveries/eval_only_param_recovery/artifacts/*/fit.rds
+models/decay_eval_only_nopool/decay_eval_only_nopool.exe
+analysis/decay_eval_only_per_baseline*/artifacts/fit.rds
+analysis/decay_eval_only_per_baseline*/artifacts/participant_map.csv

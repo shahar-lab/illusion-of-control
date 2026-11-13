@@ -1,0 +1,9 @@
+variable,ess_bulk,ess_tail,rhat
+alpha_per_sbj[1],13301.64,7193.98,1
+alpha_per_sbj[2],10037.03,8595.18,1
+alpha_per_sbj[3],10172.01,7661.06,1
+alpha_per_sbj[4],9927.57,5976.93,1
+beta_per_sbj[1],14205.51,8323.77,1
+beta_per_sbj[2],9954.13,8935.68,1
+beta_per_sbj[3],11438.98,8636.65,1
+beta_per_sbj[4],9491,5693.78,1
