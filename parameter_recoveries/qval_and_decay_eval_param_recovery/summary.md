@@ -201,3 +201,37 @@ The wider beta_per buys alpha_per (0.59 -> 0.71) and beta_per (0.93 -> 0.97), an
 are mostly driven by choice history and alpha_rl falls to 0.67. alpha_per recovers best at a push of 0.5-2. Above 2 r drops
 again, because a push that large needs alpha_per near 1, where E is the last choice only and alpha_per has little
 range left. Bin numbers come from a scratchpad script (not in repo).
+
+### n200_betaper_sd2 (200 subjects, 4 x 2000 + 3000)
+Same as n200_highbeta except beta_per = N(0, 2), between the two runs above; branch `recovery/eval_betaper_sd2_t400`.
+Same agents as `classic_qval_and_eval` n200_betaper_sd2 (same population and seeds).
+
+Runtime 130 min end-to-end (fit 128.9 min; new desktop, Intel Core Ultra 7 270K, in parallel with the eval_only and
+classic_qval_and_eval fits). 0 divergences, 0 treedepth hits, group Rhat <= 1.006, group ESS_bulk >= 921. All four
+population values inside the 90% intervals (alpha_rl_pop 0.53, true 0.5; beta_rl_pop 2.66, true 2.72; alpha_per_pop
+0.47, true 0.5; beta_per_pop 0.12, true 0). Trade-offs: alpha_rl / beta_rl error cor -0.36; the rest |cor| <= 0.16.
+
+| param | r (highbeta) | r (betaper_sd3) | r (betaper_sd2) | slope (sd2) | bias (sd2) | 90% coverage (sd2) |
+|---|---|---|---|---|---|---|
+| alpha_rl  | 0.91 | 0.86 | 0.88 | 0.84 | 0.02 | 0.91 |
+| beta_rl   | 0.86 | 0.77 | 0.81 | 0.63 | -0.19 | 0.90 |
+| alpha_per | 0.59 | 0.71 | 0.66 | 0.50 | -0.02 | 0.90 |
+| beta_per  | 0.93 | 0.97 | 0.96 | 0.91 | 0.00 | 0.95 |
+
+alpha_per r by push size abs(beta_per * alpha_per):
+
+| push | <= 0.25 | 0.25-0.5 | 0.5-1 | 1-2 | > 2 |
+|---|---|---|---|---|---|
+| highbeta (n) | 0.21 (81) | 0.26 (43) | 0.65 (34) | 0.80 (33) | 0.50 (9) |
+| betaper_sd3 (n) | 0.14 (55) | 0.54 (26) | 0.75 (43) | 0.88 (34) | 0.56 (42) |
+| betaper_sd2 (n) | 0.19 (70) | 0.52 (32) | 0.72 (48) | 0.65 (29) | 0.51 (21) |
+| sd2 coverage | 0.87 | 0.94 | 0.92 | 0.83 | 0.95 |
+
+By abs(beta_per) in betaper_sd2: alpha_per r 0.30 below 0.5, 0.52 for 0.5-1, 0.78 for 1-2, 0.88 above 2. alpha_rl r
+by beta_rl: 0.36 (n 4) for <= 1, 0.87 (50) for 1-2, 0.90 (102) for 2-4, 0.93 (44) above 4 (coverage 0.84 there).
+
+N(0, 2) lands between N(0, 1.5) and N(0, 3) on every parameter, as expected: alpha_per 0.66 and beta_per 0.96 at a
+smaller RL cost than N(0, 3) (beta_rl 0.81 vs 0.77). The push pattern repeats: alpha_per is undefined below 0.25 and
+recovers at 0.5-2, though the 1-2 bin (0.65, n 29) is lower than in the other two runs. On the same agents
+`classic_qval_and_eval` gets alpha_per 0.31 and beta_per 0.78, so the decaying trace, not the population, is what makes
+alpha_per recoverable. Bin numbers come from a scratchpad script (not in repo).
